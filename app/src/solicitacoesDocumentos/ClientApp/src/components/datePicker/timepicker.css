@@ -1,0 +1,15 @@
+.MuiPickersToolbar {
+  border-bottom: 2px solid #005128 !important;
+}
+
+.MuiTabs-root .MuiPickerDTTabs-tabs {
+  background-color: #005128;
+}
+.MuiInput-underline.Mui-error::after  {
+  transform: scaleX(0) !important;
+  border-bottom: 2px solid rgb(133, 133, 133) !important;
+  
+}
+.MuiFormLabel-root{
+  color: rgb(133, 133, 133) !important;
+}

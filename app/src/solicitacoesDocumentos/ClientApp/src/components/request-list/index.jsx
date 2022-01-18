@@ -1,0 +1,840 @@
+/* eslint-disable multiline-ternary */
+/* eslint-disable no-use-before-define */
+import * as React from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { useLocation } from 'react-router-dom';
+import Icon from '@mdi/react';
+import PropTypes from 'prop-types';
+import { alpha } from '@mui/material/styles';
+// import Box from '@mui/material/Box'
+// import Table from '@mui/material/Table'
+// import TableBody from '@mui/material/TableBody'
+// import TableCell from '@mui/material/TableCell'
+// import TableContainer from '@mui/material/TableContainer'
+// import TableHead from '@mui/material/TableHead'
+// import TablePagination from '@mui/material/TablePagination'
+// import TableRow from '@mui/material/TableRow'
+// import TableSortLabel from '@mui/material/TableSortLabel'
+// import Toolbar from '@mui/material/Toolbar'
+// import Typography from '@mui/material/Typography'
+import {
+  Paper,
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+  TableSortLabel,
+  Toolbar,
+  Typography,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  Card,
+  CardContent,
+  TextField,
+  Fab,
+  IconButton,
+  Tooltip,
+  Stack,
+} from '@mui/material';
+import { visuallyHidden } from '@mui/utils';
+// import Badge from '@material-ui/core/Badge'
+import Badge from 'react-bootstrap/Badge';
+// import Checkbox from '@mui/material/Checkbox';
+// import IconButton from '@mui/material/IconButton'
+// import Tooltip from '@mui/material/Tooltip'
+import { Alert, AlertTitle } from '@material-ui/lab';
+import FilterListIcon from '@mui/icons-material/FilterList';
+
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+import MuiAlert from '@material-ui/lab/Alert';
+import { Snackbar } from '@material-ui/core';
+
+import {
+  mdiMagnify,
+  mdiPlus,
+  mdiBorderColor,
+  mdiDelete,
+  mdiFileUpload,
+} from '@mdi/js';
+import { withStyles } from '@material-ui/core/styles';
+import styled from 'styled-components';
+import Form from '../form';
+import APIEventos from '../../lib/api/eventos';
+import APISolicitacoes from '../../lib/api/solicitacoes';
+import { UploadContext } from '../../lib/context/upload-context';
+import DatePicker from '../datePicker';
+import FilesAvailables from '../files-availables';
+
+// import Home from '../home';
+// import { Redirect } from 'react-router-dom';
+
+// function createData(name, calories, fat, carbs, protein) {
+//   return {
+//     name,
+//     calories,
+//     fat,
+//     carbs,
+//     protein,
+//   };
+// }
+
+// const rows = [
+//   createData('Cupcake', 305, 3.7, 67, 4.3),
+//   createData('Donut', 452, 25.0, 51, 4.9),
+//   createData('Eclair', 262, 16.0, 24, 6.0),
+//   createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
+//   createData('Gingerbread', 356, 16.0, 49, 3.9),
+//   createData('Honeycomb', 408, 3.2, 87, 6.5),
+//   createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
+//   createData('Jelly Bean', 375, 0.0, 94, 0.0),
+//   createData('KitKat', 518, 26.0, 65, 7.0),
+//   createData('Lollipop', 392, 0.2, 98, 0.0),
+//   createData('Marshmallow', 318, 0, 81, 2.0),
+//   createData('Nougat', 360, 19.0, 9, 37.0),
+//   createData('Oreo', 437, 18.0, 63, 4.0),
+// ];
+import './data.css';
+
+function descendingComparator(a, b, orderBy) {
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+function getComparator(order, orderBy) {
+  return order === 'desc'
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+}
+
+// This method is created for cross-browser compatibility, if you don't
+// need to support IE11, you can use Array.prototype.sort() directly
+function stableSort(array, comparator) {
+  const stabilizedThis = array.map((el, index) => [el, index]);
+  stabilizedThis.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) {
+      return order;
+    }
+    return a[1] - b[1];
+  });
+  return stabilizedThis.map((el) => el[0]);
+}
+
+const styles = (theme) => ({
+  field: {
+    backgroundColor: '#006600',
+  },
+});
+
+const headCells = [
+  {
+    id: 'name',
+    align: 'left',
+    disablePadding: true,
+    label: 'Nome Paciente',
+  },
+  {
+    id: 'Status',
+    align: 'center',
+    disablePadding: false,
+    label: 'Nome Solicitante',
+  },
+  {
+    id: 'fat',
+    align: 'right',
+    disablePadding: false,
+    label: 'Data Solicitação',
+  },
+  {
+    id: 'carbs',
+    align: 'right',
+    disablePadding: false,
+    label: 'Status',
+  },
+  {
+    id: 'actions',
+    align: 'right',
+    disablePadding: false,
+    label: 'Ações',
+  },
+];
+
+function EnhancedTableHead(props) {
+  const {
+    order,
+    orderBy,
+
+    onRequestSort,
+  } = props;
+  const createSortHandler = (property) => (event) => {
+    onRequestSort(event, property);
+  };
+
+  return (
+    <TableHead>
+      <TableRow>
+        {/* <TableCell padding="checkbox">
+          <Checkbox
+            color="primary"
+            indeterminate={numSelected > 0 && numSelected < rowCount}
+            checked={rowCount > 0 && numSelected === rowCount}
+            onChange={onSelectAllClick}
+            inputProps={{
+              'aria-label': 'select all desserts',
+            }}
+          />
+        </TableCell> */}
+        {headCells.map((headCell) => (
+          <TableCell
+            key={headCell.id}
+            align={headCell.align}
+            padding="normal"
+            sortDirection={orderBy === headCell.id ? order : false}
+            className="bg-cinza-claro">
+            <TableSortLabel
+              active={orderBy === headCell.id}
+              direction={orderBy === headCell.id ? order : 'asc'}
+              onClick={createSortHandler(headCell.id)}>
+              {headCell.label}
+              {orderBy === headCell.id ? (
+                <Box component="span" sx={visuallyHidden}>
+                  {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                </Box>
+              ) : null}
+            </TableSortLabel>
+          </TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+  );
+}
+
+EnhancedTableHead.propTypes = {
+  // numSelected: PropTypes.number.isRequired,
+  onRequestSort: PropTypes.func.isRequired,
+  // onSelectAllClick: PropTypes.func.isRequired,
+  order: PropTypes.oneOf(['asc', 'desc']).isRequired,
+  orderBy: PropTypes.string.isRequired,
+  // rowCount: PropTypes.number.isRequired,
+};
+
+const EnhancedTableToolbar = (props) => {
+  const { numSelected } = props;
+
+  return (
+    <Toolbar
+      sx={{
+        pl: { sm: 2 },
+        pr: { xs: 1, sm: 1 },
+        ...(numSelected > 0 && {
+          bgcolor: (theme) =>
+            alpha(
+              theme.palette.primary.main,
+              theme.palette.action.activatedOpacity,
+            ),
+        }),
+      }}>
+      {/* {numSelected > 0 ? (
+        <Typography
+          sx={{ flex: '1 1 100%' }}
+          color="inherit"
+          variant="subtitle1"
+          component="div">
+          {numSelected} selected
+        </Typography>
+      ) : ( */}
+      {/* <Typography
+        sx={{ flex: '1 1 100%' }}
+        variant="h6"
+        id="tableTitle"
+        component="div">
+        Eventos
+      </Typography> */}
+      {/* )} */}
+
+      {/* {numSelected > 0 ? (
+        <Tooltip title="Delete">
+          <IconButton>
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+      ) : ( */}
+      <Tooltip title="Filter list">
+        <IconButton>
+          <FilterListIcon />
+        </IconButton>
+      </Tooltip>
+      {/* )} */}
+    </Toolbar>
+  );
+};
+
+EnhancedTableToolbar.propTypes = {
+  numSelected: PropTypes.number.isRequired,
+};
+
+export default function EnhancedTable(props) {
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
+  const location = useLocation();
+  console.log(location.state);
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('calories');
+  const [selected, setSelected] = useState([]);
+  const [page, setPage] = useState(0);
+
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [changeRender, setChageRender] = useState(location.state?.type);
+  const [events, setEvents] = useState([]);
+
+  const [success, setSuccess] = useState(false);
+  const [message, setMessage] = useState('');
+  const [confirm, setConfirm] = useState(false);
+  const [item, setItem] = useState(null);
+  const vertical = 'top';
+  const horizontal = 'center';
+  const { setDadosUpload } = useContext(UploadContext);
+  const start = dayjs().startOf('month');
+  const end = dayjs().endOf('month');
+
+  const initialProps = {
+    rg_title: '',
+    rg_date_begin: start,
+    rg_date_end: end,
+    rg_site: '',
+    rg_description: '',
+    rg_document: '',
+    rg_show_by_time: false,
+    rg_status: '',
+  };
+
+  const [filtros, setFiltros] = useState((state) => (state = initialProps));
+
+  const Message = (state) => {
+    return <MuiAlert elevation={6} variant="filled" {...state} />;
+  };
+
+  const handleRequestSort = (event, property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  const handleSelectAllClick = (event) => {
+    if (event.target.checked) {
+      const newSelecteds = events.map((n) => n.name);
+      setSelected(newSelecteds);
+      return;
+    }
+    setSelected([]);
+  };
+
+  const onChange = (name, value) => {
+    const campos = { ...filtros };
+    console.log(name, value);
+    if (value === 'Invalid Date') {
+      campos[name] = null;
+    } else {
+      campos[name] = value;
+    }
+    setFiltros(campos);
+  };
+
+  const handleClick = (event, name) => {
+    const selectedIndex = selected.indexOf(name);
+    let newSelected = [];
+
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selected, name);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selected.slice(1));
+    } else if (selectedIndex === selected.length - 1) {
+      newSelected = newSelected.concat(selected.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(
+        selected.slice(0, selectedIndex),
+        selected.slice(selectedIndex + 1),
+      );
+    }
+
+    setSelected(newSelected);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const HandleEvents = async () => {
+    const campos = {};
+    if (filtros.rg_date_begin !== null) {
+      campos.rg_date_begin = dayjs(filtros.rg_date_begin)
+        .tz('America/Sao_Paulo')
+        .format();
+    }
+    if (filtros.rg_date_end !== null) {
+      campos.rg_date_end = dayjs(filtros.rg_date_end)
+        .tz('America/Sao_Paulo')
+        .format();
+    }
+    campos.rg_description = filtros.rg_description;
+    campos.rg_title = filtros.rg_title;
+    const resp = await APISolicitacoes.getSolicitacoes();
+    if (resp?.success) {
+      console.log(resp);
+      setEvents(resp.data);
+    }
+  };
+
+  const HandleRender = (value) => {
+    // HandleEvents()
+
+    if (value === 'list') {
+      window.location.reload();
+    }
+    setChageRender(value);
+    console.log(changeRender);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const HandleEdit = (items, change) => {
+    setChageRender(change);
+    // const docs = items.filter((e) => e.origem === 'S');
+    setItem(items);
+  };
+
+  const HandleDelete = (items) => {
+    setConfirm(true);
+    setItem(items);
+  };
+
+  const handleClose = async (value) => {
+    setDadosUpload(null);
+    setChageRender(value);
+    setSuccess(value);
+    setItem(null);
+    // window.location.reload()
+    setMessage('Salvo com sucesso!');
+  };
+
+  const onDelete = async () => {
+    const campos = {};
+    campos.rg_id_events = item.rg_id_events;
+
+    const resp = await APIEventos.deleteEvent(campos);
+
+    if (resp?.success) {
+      setSuccess(true);
+      setMessage('Deletado com sucesso!');
+      setConfirm(false);
+      // props.handleClose(true)
+      window.location.reload();
+    }
+  };
+
+  const isSelected = (name) => selected.indexOf(name) !== -1;
+
+  // Avoid a layout jump when reaching the last page with empty rows.
+  const emptyRows =
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - events.length) : 0;
+
+  const action = (
+    <Message color="success" severity="success">
+      {message}
+    </Message>
+  );
+
+  useEffect(() => {
+    HandleEvents();
+  }, [changeRender]);
+
+  useEffect(() => {
+    // window.location.reload()
+    if (location.state.status === 'new') {
+      setChageRender('list');
+    }
+  }, [location]);
+
+  const Render = () => {
+    const dataInicio = {
+      name: 'rg_date_begin',
+      label: 'Data Início',
+      value: filtros?.rg_date_begin || '',
+      format: 'YYYY-MM-DD HH:mm',
+    };
+    const dataFim = {
+      name: 'rg_date_end',
+      label: 'Data Fim',
+      value: filtros?.rg_date_end || '',
+      format: 'YYYY-MM-DD HH:mm',
+    };
+    const titulo = {
+      name: 'rg_title',
+      label: 'Título',
+      value: filtros?.rg_title || '',
+    };
+    const descricao = {
+      name: 'rg_description',
+      label: 'Descrição',
+      value: filtros?.rg_description || '',
+    };
+    return (
+      events && (
+        <Box sx={{ width: '100%' }}>
+          <Card style={{ marginBottom: '15px' }}>
+            <Typography variant="h4">Solicitações</Typography>
+            <CardContent>
+              <div className="row">
+                <div className="col-md-4">
+                  <TextField
+                    fullWidth
+                    variant="filled"
+                    label={titulo.label}
+                    value={titulo.value}
+                    onChange={(v) => onChange(titulo.name, v.target.value)}
+                  />
+                </div>
+
+                <div className="col-md-3">
+                  <TextField
+                    fullWidth
+                    variant="filled"
+                    label={descricao.label}
+                    value={descricao.value}
+                    onChange={(v) => onChange(descricao.name, v.target.value)}
+                  />
+                </div>
+                <div className="col-md-2 mt-2">
+                  <DatePicker data={dataInicio} onChange={onChange} />
+                </div>
+                <div className="col-md-2 mt-2">
+                  <DatePicker data={dataFim} onChange={onChange} />
+                </div>
+                {/* <div className="col-md-1 text-end"> */}
+                <Fab
+                  size="large"
+                  style={{
+                    backgroundColor: '#005128',
+                    // bottom: '50px',
+                    // left: '30px'
+                  }}
+                  onClick={() => HandleEvents()}>
+                  <Icon
+                    path={mdiMagnify}
+                    title="Pesquisar"
+                    size={1}
+                    color="white"
+                  />
+                </Fab>
+                <Fab
+                  // className="ml-25 mt-2"
+                  size="large"
+                  style={{
+                    backgroundColor: '#f5781e',
+                    // bottom: '50px',
+                    // left: '34px'
+                  }}
+                  onClick={() => HandleRender('list')}
+                  // onClick={AceitarTermo}
+                >
+                  <Icon
+                    path={mdiPlus}
+                    title="Pesquisar"
+                    size={1}
+                    color="white"
+                  />
+                </Fab>
+                {/* </div> */}
+              </div>
+            </CardContent>
+          </Card>
+          <Card style={{ marginBottom: '15px' }}>
+            <CardContent>
+              <Paper sx={{ width: '100%', mb: 2, height: '100%' }}>
+                {/* <EnhancedTableToolbar numSelected={selected.length} /> */}
+                <TableContainer>
+                  <Table aria-labelledby="tableTitle" size="medium">
+                    <EnhancedTableHead
+                      numSelected={selected.length}
+                      order={order}
+                      orderBy={orderBy}
+                      onSelectAllClick={handleSelectAllClick}
+                      onRequestSort={handleRequestSort}
+                      rowCount={events.length}
+                    />
+                    <TableBody>
+                      {/* if you don't need to support IE11, you
+                       can replace the `stableSort` call with:
+                   rows.slice().sort(getComparator(order, orderBy)) */}
+                      {events &&
+                        stableSort(events, getComparator(order, orderBy))
+                          .slice(
+                            page * rowsPerPage,
+                            page * rowsPerPage + rowsPerPage,
+                          )
+                          .map((row, index) => {
+                            const isItemSelected = isSelected(row.rg_title);
+                            const labelId = `enhanced-table-checkbox-${index}`;
+                            const ano = dayjs(row.rg_date_begin)
+                              .tz('America/Sao_Paulo')
+                              .format('YYYY');
+                            let statusColor;
+                            let statusType;
+                            switch (row?.statusSolicitacao.descStatus) {
+                              case 'Concluído':
+                                statusColor = 'success';
+                                statusType = row?.statusSolicitacao.descStatus;
+                                break;
+                              case 'Pendente':
+                                statusColor = 'warning';
+                                statusType = row?.statusSolicitacao.descStatus;
+                                break;
+                              case 'Arquivado':
+                                statusColor = 'danger';
+                                statusType = row?.statusSolicitacao.descStatus;
+                                break;
+                              default:
+                                break;
+                            }
+                            return (
+                              <TableRow
+                                hover
+                                role="checkbox"
+                                aria-checked={isItemSelected}
+                                tabIndex={-1}
+                                key={row.rg_id_events}
+                                selected={isItemSelected}>
+                                <TableCell
+                                  component="th"
+                                  id={labelId}
+                                  scope="row">
+                                  {row.nomePaciente}
+                                </TableCell>
+                                <TableCell
+                                  align="center"
+                                  component="th"
+                                  id={labelId}
+                                  scope="row">
+                                  {row.nomeSolicitannte}
+                                </TableCell>
+                                <TableCell align="right">
+                                  {dayjs(row?.dataSolicitacao)
+                                    .tz('America/Sao_Paulo')
+                                    .format('DD/MM/YYYY HH:mm')}
+                                </TableCell>
+                                <TableCell align="right">
+                                  <h5>
+                                    <Badge bg={statusColor}>{statusType}</Badge>
+                                  </h5>
+                                  {/* <Stack
+                                spacing={4}
+                                direction="row"
+                                sx={{
+                                  backgroundColor: '#006600'
+                                }}>
+                                {/* eslint-disable-next-line max-len */}
+
+                                  {/* <Badge
+                                className="MuiBadge-badge"
+                                style={{
+                                  backgroundColor: '#006600'
+                                }}
+                                badgeContent="gfhgfghhfhgh"
+                                overlap="circle"
+                                component="span"
+                              /> */}
+                                  {/* <span className={`badge badge-${statusColor}`}>
+                                  {statusType}
+                                </span> */}
+                                  {/* </Stack>  */}
+                                </TableCell>
+                                <TableCell align="right">
+                                  <Fab
+                                    // className="ml-25 mt-2"
+                                    size="small"
+                                    style={{
+                                      backgroundColor: 'rgb(236 236 236)',
+                                      // bottom: '50px',
+                                      // left: '30px'
+                                    }}
+                                    onClick={() =>
+                                      HandleEdit(row, 'uploadTeste')
+                                    }>
+                                    <Icon
+                                      path={mdiFileUpload}
+                                      style={{
+                                        color: '#005128',
+                                        bottom: '50px',
+                                        // left: '30px'
+                                      }}
+                                      title="Editar"
+                                      size={1}
+                                      // color="white"
+                                    />
+                                  </Fab>
+                                  <Fab
+                                    // className="ml-25 mt-2"
+                                    size="small"
+                                    style={{
+                                      backgroundColor: 'rgb(236 236 236)',
+                                      // bottom: '50px',
+                                      // left: '30px'
+                                    }}
+                                    onClick={() =>
+                                      HandleEdit(row, 'downloadTeste')
+                                    }>
+                                    <Icon
+                                      path={mdiBorderColor}
+                                      style={{
+                                        color: '#005128',
+                                        bottom: '50px',
+                                        // left: '30px'
+                                      }}
+                                      title="Editar"
+                                      size={1}
+                                      // color="white"
+                                    />
+                                  </Fab>
+                                  <Fab
+                                    // className="ml-25 mt-2"
+                                    size="small"
+                                    style={{
+                                      backgroundColor: 'rgb(236 236 236)',
+                                      // bottom: '50px',
+                                      // left: '30px'
+                                    }}
+                                    onClick={() => HandleDelete(row)}>
+                                    <Icon
+                                      path={mdiDelete}
+                                      style={{
+                                        color: '#ea0f63',
+                                        bottom: '50px',
+                                        // left: '30px'
+                                      }}
+                                      title="Deletar"
+                                      size={1}
+                                      // color="white"
+                                    />
+                                  </Fab>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                      {/* {renderItens()} */}
+                      {emptyRows > 0 && (
+                        <TableRow
+                          style={{
+                            height: 33 * emptyRows,
+                          }}>
+                          <TableCell colSpan={6} />
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25]}
+                  component="div"
+                  count={events.length}
+                  rowsPerPage={rowsPerPage}
+                  labelRowsPerPage="Registros por página"
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+              </Paper>
+            </CardContent>
+          </Card>
+          <Snackbar
+            open={success}
+            autoHideDuration={6000}
+            onClose={handleClose}
+            anchorOrigin={{ vertical, horizontal }}
+            key={vertical + horizontal}>
+            {action}
+          </Snackbar>
+          <Dialog
+            className="justify-content-left"
+            open={confirm}
+            fullWidth
+            onClose={handleClose}
+            aria-labelledby="alert-dialog-title">
+            <DialogContent dividers>
+              <Alert color="warning">
+                <AlertTitle>
+                  Tem certeza que deseja excluir este registro?
+                </AlertTitle>
+              </Alert>
+            </DialogContent>
+            <DialogActions>
+              <div className="col-md-6 text-center w-50">
+                <button
+                  type="button"
+                  className="btn btn-danger  btn-lg w-50"
+                  onClick={() => {
+                    setConfirm(false);
+                  }}>
+                  Cancelar
+                </button>
+              </div>
+              <div className="col-md-6 text-center w-50">
+                <button
+                  type="button"
+                  className="submit btn btn-success bg-verde-primario btn-lg w-50"
+                  onClick={() => onDelete()}>
+                  Confirmar
+                </button>
+              </div>
+            </DialogActions>
+          </Dialog>
+        </Box>
+      )
+    );
+  };
+
+  const MainRender = () => {
+    switch (changeRender) {
+      case 'list':
+        return Render();
+        break;
+      case 'uploadTeste':
+        return (
+          <FilesAvailables
+            data={item}
+            handleClose={handleClose}
+            HandleRender={HandleRender}
+          />
+        );
+        break;
+      case 'downloadTeste':
+        return (
+          <Form
+            data={item}
+            handleClose={handleClose}
+            HandleRender={HandleRender}
+          />
+        );
+        break;
+      default:
+        break;
+    }
+  };
+
+  return MainRender();
+}

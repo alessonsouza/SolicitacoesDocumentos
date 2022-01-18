@@ -1,0 +1,25 @@
+.css-177ic5c {    
+    position: fixed !important;
+}
+
+@media screen and (max-width: 400px) {
+    html {
+      font-size: 10px;
+      padding-right: 1%;
+      margin-top: -40px;
+      margin-left: 20px;
+      text-align: justify;
+    };
+    div {
+        width: 5%;
+    };
+     .datas {
+      margin-left: -35px;
+      bottom: 8%;
+      left: -27%;
+    };
+    .image {
+      height: 40px !important;
+      width: 50px !important;
+    };  
+  }

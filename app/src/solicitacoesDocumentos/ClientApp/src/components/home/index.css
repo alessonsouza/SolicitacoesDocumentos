@@ -1,0 +1,9 @@
+@media (max-width: 400px) {
+  html {
+    font-size: 12px;
+    margin-left: -150px;
+  };
+  div :root{
+      width: 5%;
+  }    
+}
