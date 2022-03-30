@@ -1,6 +1,6 @@
 /* eslint-disable no-use-before-define */
-import * as React from 'react';
 import { useState, useRef, useContext, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 // import Box from '@mui/material/Box';
 // import TableCell from '@mui/material/TableCell';
 // import TableHead from '@mui/material/TableHead';
@@ -14,10 +14,8 @@ import { useState, useRef, useContext, useEffect } from 'react';
 
 import {
   Box,
-  Checkbox,
   Card,
   CardContent,
-  Button,
   TextField,
   FormControlLabel,
   Paper,
@@ -33,15 +31,13 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { Formik } from 'formik';
 // import * as Yup from 'yup';
-import { Redirect } from 'react-router-dom';
 import DatePicker from '../datePicker';
 import SelectField from '../selectField';
-import APIEventos from '../../lib/api/eventos';
 import APISolicitacoes from '../../lib/api/solicitacoes';
 import APITipoSolicitante from '../../lib/api/tipoSolicitante';
 import APITipoDocumento from '../../lib/api/tipoDocumento';
-import APIStatusSolicitacao from '../../lib/api/statusSolicitacao';
 import APIMotivoSolicitacao from '../../lib/api/motivoSolicitacao';
+import APITipoRetirada from '../../lib/api/tipoRetirada';
 import Upload from '../uploads';
 import FileList from '../fileList/index.tsx';
 import { FileProvider, useFiles } from '../context/files.tsx';
@@ -53,19 +49,23 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 // import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
-import FormLabel from '@material-ui/core/FormLabel';
-import { RestaurantRounded } from '@material-ui/icons';
+import { type } from 'os';
 
 const Register = (props) => {
   const { handleUpload } = useFiles();
   dayjs.extend(utc);
   dayjs.extend(timezone);
+  const history = useHistory();
   const start = dayjs().startOf('month').format();
   const end = dayjs().endOf('month').format();
   const [success, setSuccess] = useState(false);
+  const [message, setMessage] = useState('');
+  const [typeMessage, setTypeMessage] = useState('success');
   const [tipoSolicitante, setTipoSolicitante] = useState([]);
   const [tipoDocumento, setTipoDocumento] = useState([]);
   const [motivoSolicitacao, setMotivoSolicitacao] = useState([]);
+  const [tipoRetirada, setTipoRetirada] = useState([]);
+  const available = props.type === 'new' ? false : true;
   const filesElement = useRef(null);
   const { dadosUpload, setDadosUpload } = useContext(UploadContext);
   // const [dialogTerm, setDialogTerm] = useState(false);
@@ -79,6 +79,7 @@ const Register = (props) => {
 
   const [requerenteChecked, setRequerenteChecked] = useState();
   const [documentoChecked, setDocumentoChecked] = useState();
+  const [retiradaChecked, setRetiradaChecked] = useState();
 
   // eslint-disable-next-line react/destructuring-assignment
   // if (props?.data?.rg_document && props?.data?.rg_id_events && !dadosUpload) {
@@ -108,9 +109,9 @@ const Register = (props) => {
     grauParentesco: null,
     tipoRequerente: null,
     tipoDocumento: null,
+    tipoRetirada: null,
     statusSolicitacao: null,
     motivoSolicitacao: null,
-    tipoRetirada: null,
     created_at: dayjs().tz('America/Sao_Paulo').format(),
   };
 
@@ -121,12 +122,11 @@ const Register = (props) => {
 
   const onChange = (name, value) => {
     const campos = { ...filtros };
-    console.log(name, value);
-    if (value === 'Invalid Date') {
-      campos[name] = null;
-    } else {
-      campos[name] = value;
-    }
+    // if (value === 'Invalid Date') {
+    //   campos[name] = null;
+    // } else {
+    campos[name] = value;
+    // }
     setFiltros(campos);
   };
 
@@ -167,6 +167,17 @@ const Register = (props) => {
     // onChange('TipoDocumentoId', event.target.value);
   };
 
+  const handleChangeRetirada = (name, event) => {
+    const campos = { ...filtros };
+    campos[name] = tipoRetirada.filter(
+      (e) => e.id === parseInt(event.target.value, 10),
+    );
+    campos[name] = campos[name][0];
+    setFiltros(campos);
+    setRetiradaChecked(event.target.value);
+    // onChange('TipoDocumentoId', event.target.value);
+  };
+
   const onCancel = () => {
     setDadosUpload(null);
     // props.HandleRender(false)
@@ -182,32 +193,32 @@ const Register = (props) => {
     //     .format();
     // }
     // if (filtros.rg_date_end_visu !== null) {
-    campos.rg_date_end_visu = dayjs(filtros.rg_date_end_visu)
-      .tz('America/Sao_Paulo')
-      .format();
+    // campos.rg_date_end_visu = dayjs(filtros.rg_date_end_visu)
+    //   .tz('America/Sao_Paulo')
+    //   .format();
     // }
 
-    campos.rg_document = dadosUpload;
+    // campos.rg_document = dadosUpload;
     let resp = {};
-    if (filtros.id) {
-      campos.rg_id_events = filtros.rg_id_events;
-      resp = await APIEventos.updateEvent(campos);
-    } else {
-      // filtros.StatusSolicitacaoid = 1;
-      filtros.statusSolicitacao = {
-        id: 1,
-        // descStatus: 'Pendente',
-        // status: 1,
-      };
-      // filtros.TipoRetiradaid = 1;
-      filtros.tipoRetirada = {
-        id: 1,
-        // status: 1,
-        // descRetirada: 'online',
-      };
-      filtros.Documentos = dadosUpload;
-      resp = await APISolicitacoes.insert(filtros);
-    }
+    // if (filtros.id) {
+    //   campos.rg_id_events = filtros.rg_id_events;
+    //   resp = await APIEventos.updateEvent(campos);
+    // } else {
+    // filtros.StatusSolicitacaoid = 1;
+    filtros.statusSolicitacao = {
+      id: 1,
+      // descStatus: 'Pendente',
+      // status: 1,
+    };
+    // filtros.TipoRetiradaid = 1;
+    // filtros.tipoRetirada = {
+    //   id: 1,
+    //   // status: 1,
+    //   // descRetirada: 'online',
+    // };
+    filtros.Documentos = dadosUpload;
+    resp = await APISolicitacoes.insert(filtros);
+    // }
 
     if (resp?.success) {
       setDadosUpload(null);
@@ -217,24 +228,42 @@ const Register = (props) => {
         props?.getStepNameButton(2);
       }
     }
+
+    if (
+      resp?.title === 'One or more validation errors occurred.' ||
+      resp.error === 'Object reference not set to an instance of an object.'
+    ) {
+      setSuccess(true);
+      setMessage('Preencha todos os campos!');
+      setTypeMessage('error');
+    }
+  };
+
+  const GoBack = () => {
+    history.push({
+      pathname: '/request-list',
+      state: { type: 'list', status: 'new' },
+    });
   };
 
   useEffect(async () => {
     const resp = await APITipoSolicitante.getAll();
-    console.log(resp);
     setTipoSolicitante(resp?.data);
   }, []);
 
   useEffect(async () => {
     const resp = await APITipoDocumento.getAll();
-    console.log(resp);
     setTipoDocumento(resp?.data);
   }, []);
 
   useEffect(async () => {
     const resp = await APIMotivoSolicitacao.getAll();
-    console.log(resp);
     setMotivoSolicitacao(resp?.data);
+  }, []);
+
+  useEffect(async () => {
+    const resp = await APITipoRetirada.getAll();
+    setTipoRetirada(resp?.data);
   }, []);
 
   const dataNasc = {
@@ -324,16 +353,13 @@ const Register = (props) => {
     name: 'motivoSolicitacao',
     label: 'Motivo',
     items: motivoSolicitacao || [],
-    value:
-      props.type === 'new'
-        ? filtros?.motivoSolicitacao
-        : filtros?.motivoSolicitacao.id,
+    value: filtros?.motivoSolicitacao?.id,
     config: { text: 'descMotivo', value: 'id' },
   };
 
   const action = (
-    <Message color="success" severity="success">
-      Evento cadastra com sucesso!
+    <Message color={typeMessage} severity={typeMessage}>
+      {message}
     </Message>
   );
   return (
@@ -378,6 +404,7 @@ const Register = (props) => {
                         <TextField
                           size="small"
                           htmlfor="rg_title"
+                          disabled={available}
                           required
                           value={telContato.value || ''}
                           className="w-100"
@@ -399,6 +426,7 @@ const Register = (props) => {
                           size="small"
                           htmlfor="rg_title"
                           required
+                          disabled={available}
                           value={email.value || ''}
                           className="w-100"
                           variant="filled"
@@ -430,8 +458,10 @@ const Register = (props) => {
                   </CardTitle>
                   <CardContent>
                     <div className="row">
-                      <div className="col-md-12">
+                      <div className="col-md-10">
                         <TextField
+                          required
+                          disabled={available}
                           className="w-100"
                           variant="filled"
                           value={namePaciente.value || ''}
@@ -441,11 +471,18 @@ const Register = (props) => {
                           }
                         />
                       </div>
-                      <div className="col-md-6">
-                        <DatePicker data={dataNasc} onChange={onChange} />
+                      <div className="col-md-2">
+                        <DatePicker
+                          required
+                          disabled={available}
+                          data={dataNasc}
+                          onChange={onChange}
+                        />
                       </div>
                       <div className="col-md-6">
                         <TextField
+                          required
+                          disabled={available}
                           className="w-100"
                           variant="filled"
                           value={cpfPaciente.value || ''}
@@ -457,6 +494,8 @@ const Register = (props) => {
                       </div>
                       <div className="col-md-6">
                         <TextField
+                          required
+                          disabled={available}
                           className="w-100"
                           variant="filled"
                           value={rgPaciente.value || ''}
@@ -491,9 +530,7 @@ const Register = (props) => {
                             aria-label="Requerente"
                             name="Requerente"
                             value={parseInt(
-                              requerenteChecked || props.type === 'new'
-                                ? filtros.tipoRequerente
-                                : filtros.tipoRequerente?.id,
+                              requerenteChecked || filtros.tipoRequerente?.id,
                               10,
                             )}
                             onChange={(e) =>
@@ -505,6 +542,7 @@ const Register = (props) => {
                                   <FormControlLabel
                                     key={solicitante.id}
                                     value={solicitante.id}
+                                    disabled={available}
                                     control={<Radio />}
                                     label={solicitante.descRequerente}
                                   />
@@ -557,8 +595,10 @@ const Register = (props) => {
                     <div className="row">
                       <div className="col-md-12">
                         <TextField
+                          required
                           className="w-100"
                           variant="filled"
+                          disabled={available}
                           value={nameRequerente.value || ''}
                           label={nameRequerente.label}
                           onChange={(v) =>
@@ -568,6 +608,8 @@ const Register = (props) => {
                       </div>
                       <div className="col-md-6">
                         <TextField
+                          required
+                          disabled={available}
                           className="w-100"
                           variant="filled"
                           value={cpfRequerente.value || ''}
@@ -579,6 +621,8 @@ const Register = (props) => {
                       </div>
                       <div className="col-md-6">
                         <TextField
+                          required
+                          disabled={available}
                           className="w-100"
                           variant="filled"
                           value={rgRequerente.value || ''}
@@ -591,6 +635,7 @@ const Register = (props) => {
                       {requerenteChecked === '3' && (
                         <div className="col-md-6">
                           <TextField
+                            disabled={available}
                             className="w-100"
                             variant="filled"
                             value={parentesco.value || ''}
@@ -635,8 +680,61 @@ const Register = (props) => {
                                   <FormControlLabel
                                     key={documento.id}
                                     value={documento.id}
+                                    disabled={available}
                                     control={<Radio />}
                                     label={documento.descDocumento}
+                                  />
+                                );
+                              })}
+                          </RadioGroup>
+                        </FormControl>
+                      </div>
+                      {/* <div className="col-md-6">
+                        <TextField
+                          className="w-100"
+                          variant="filled"
+                          value={cpf.value || ''}
+                          label={cpf.label}
+                          onChange={(v) => onChange(cpf.name, v.target.value)}
+                        />
+                      </div> */}
+                    </div>
+                  </CardContent>
+                </Paper>
+                <Paper elevation={8} style={{ margin: '15px' }}>
+                  <CardTitle
+                    style={{
+                      backgroundColor: '#006600',
+                      paddingTop: '14px',
+                      paddingLeft: '10px',
+                      paddingBottom: '5px',
+                      color: 'white',
+                    }}>
+                    <h5>Forma de Retirada</h5>
+                  </CardTitle>
+                  <CardContent>
+                    <div className="row">
+                      <div className="col-md-12">
+                        <FormControl component="fieldset">
+                          <RadioGroup
+                            aria-label="gender"
+                            name="gender1"
+                            value={parseInt(
+                              retiradaChecked || filtros.tipoRetirada?.id,
+                              10,
+                            )}
+                            onChange={(e) =>
+                              handleChangeRetirada('tipoRetirada', e)
+                            }>
+                            {tipoRetirada &&
+                              tipoRetirada.map((retirada) => {
+                                return (
+                                  <FormControlLabel
+                                    key={retirada.id}
+                                    value={retirada.id}
+                                    control={<Radio />}
+                                    disabled={available}
+                                    label={retirada.descRetirada}
                                   />
                                 );
                               })}
@@ -671,8 +769,8 @@ const Register = (props) => {
                       {/* <div className="col-md-6">
                         <DatePicker data={dataFimVisu} onChange={onChange} />
                       </div> */}
-                      <div className="col-md-12 ">
-                        {/* <TextField
+                      {/* <div className="col-md-12 "> */}
+                      {/* <TextField
                           required
                           className="w-100"
                           value={motivo.value || ''}
@@ -681,15 +779,20 @@ const Register = (props) => {
                             onChange(motivo.name, v.target.value)
                           }
                         /> */}
-                        <div className="col-md-2">
-                          <SelectField
-                            data={statusField}
-                            onChange={onChangeClasses}
-                          />
-                        </div>
+                      <div className="col-md-4">
+                        <SelectField
+                          disabled={available}
+                          data={statusField}
+                          onChange={onChangeClasses}
+                        />
                       </div>
-                      <div className="col-md-6">
-                        <DatePicker data={data} onChange={onChange} />
+                      {/* </div> */}
+                      <div className="col-md-4">
+                        <DatePicker
+                          disabled={available}
+                          data={data}
+                          onChange={onChange}
+                        />
                       </div>
                       {/* <div className="col-md-12 mt-5">
                         <TextField
@@ -734,6 +837,25 @@ const Register = (props) => {
                             }}>
                             <Typography style={{ fontSize: '12px' }}>
                               <b>Salvar</b>
+                            </Typography>
+                          </Fab>
+                        </div>
+                      )}
+                      {props.data && (
+                        <div className="text-center">
+                          <Fab
+                            // disabled={activeStep === 0}
+                            variant="extended"
+                            size="medium"
+                            onClick={() => GoBack()}
+                            style={{
+                              backgroundColor: '#f5781e',
+                              width: '30%',
+                              textAlign: 'center',
+                              marginBottom: '10px',
+                            }}>
+                            <Typography style={{ fontSize: '12px' }}>
+                              <b>Voltar</b>
                             </Typography>
                           </Fab>
                         </div>

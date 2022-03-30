@@ -105,7 +105,7 @@ const FileProvider: React.FC = ({ children }) => {
       // if (resp) {
       //   setDadosUpload(resp);
       // }
-      console.log(resp);
+      
 
       // api
       //   .saveDocument({

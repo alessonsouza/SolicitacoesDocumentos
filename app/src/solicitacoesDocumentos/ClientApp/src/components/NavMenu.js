@@ -11,7 +11,7 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemText from '@material-ui/core/ListItemText'
 import { Collapse } from '@material-ui/core'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import clsx from 'clsx'
 import {
   Popper,
@@ -26,12 +26,12 @@ import {
 import { AuthContext } from '../lib/context/auth-context'
 import TokenAPI from '../lib/api/token'
 import UsersAPI from '../lib/api/users'
-// import Ale from '../../assets/uploads/'
+
 // eslint-disable-next-line import/no-unresolved
 import endpoint from '../endpoints.config'
 import Rotas from './rotas'
 
-import '../assets/css/colors.css'
+import '../assets/css/unimed.css'
 
 const drawerWidth = 160
 
@@ -114,9 +114,10 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-export default function MiniDrawer(props) {
+export default function NavMenu(props) {
   const classes = useStyles()
-
+  // const location = useLocation()
+  // let { from } = location.state
   const [open, setOpen] = React.useState(false)
   const [openUser, setOpenUser] = React.useState(false)
   const [openCad, setOpenCad] = React.useState(false)
@@ -124,13 +125,26 @@ export default function MiniDrawer(props) {
   const { dadosUser } = useContext(AuthContext)
   const anchorRef = React.useRef(null)
   const storage = TokenAPI.getToken()
+  const perfis = dadosUser?.groups || storage?.perfis;
   // const { dadosUpload } = useContext(UploadContext)
+
+  let menu = false;
+
+  perfis?.map((e) => {
+    if (
+      e.descricao === 'unimed'
+    ) {
+      menu = true;
+    }
+  });
 
   const Login = storage?.name ? 'Logout' : 'Login'
   const Account = storage?.name ? 'Minha conta' : 'Cadastra-se'
 
+  const prevOpen = React.useRef(openUser)
   const handleToggle = () => {
     setOpenUser((prevOpen) => !prevOpen)
+    prevOpen.current = !openUser
   }
 
   const handleClose = (event) => {
@@ -159,9 +173,8 @@ export default function MiniDrawer(props) {
   }
 
   // return focus to the button when we transitioned from !open -> open
-  const prevOpen = React.useRef(openUser)
   React.useEffect(() => {
-    if (prevOpen.current === true && openUser === false) {
+    if (prevOpen.current === true && openUser === true) {
       anchorRef.current.focus()
     }
 
@@ -172,62 +185,18 @@ export default function MiniDrawer(props) {
     setOpen(true)
   }
 
-  const handleDrawerClose = () => {
-    setOpen(false)
-  }
+  // const GetUserByID = async () => {
 
-  const HandleRoutes = () => {
-    const rotas = Rotas.map((text, index) => {
-      // eslint-disable-next-line multiline-ternary
-      return text.children ? (
-        <>
-          <ListItem key={text.title} className={classes.main} button onClick={handleClick}>
-            <ListItemIcon>{text.icon}</ListItemIcon>
-            <ListItemText primary={text.title} />
-          </ListItem>
-          {/* <ListItem button onClick={handleClick}>
-              <ListItemIcon>
-                <InboxIcon />
-              </ListItemIcon>
-              <ListItemText primary="Inbox" />
-            </ListItem> */}
-          <Collapse in={openCad} key={text.path} timeout="auto" unmountOnExit>
-            {text.children.map((child) => (
-              <>
-                {/* <List component="div" disablePadding key={child.label}> */}
-                <ListItem
-                  key={child.path}
-                  button
-                  component={Link}
-                  to={child.path}
-                  className={open ? classes.nested2 : classes.nested}>
-                  <ListItemIcon>{child.icon}</ListItemIcon>
-                  <ListItemText primary={child.label} />
-                </ListItem>
-              </>
-              // </List>
-            ))}
-          </Collapse>
-        </>
-      ) : (
-        <ListItem component={Link} className={classes.main} to={text.path} button key={text.title}>
-          <ListItemIcon>{text.icon}</ListItemIcon>
-          <ListItemText primary={text.title} />
-        </ListItem>
-      )
-    })
-    return rotas
-  }
-  const GetUserByID = async () => {
+  //   const resp = await UsersAPI.getUserByID(storage?.id || dadosUser?.id);
+  //   setDados(resp);
 
-    const resp = await UsersAPI.getUserByID(storage?.id);
-    setDados(resp);
+  // }
 
-  }
+  // useEffect(() => {
+  //   GetUserByID()
+  //   // setOpenCad(openCad)
 
-  useEffect(() => {
-    GetUserByID()
-  }, [])
+  // }, [])
 
   return (
     <div className={`${classes.root}`}>
@@ -239,12 +208,12 @@ export default function MiniDrawer(props) {
           {
             [classes.appBarShift]: open
           },
-          'bg-verde-docs'
+          'bg-verde-unimed'
         )}>
         <div className="row">
           <Toolbar>
             <div className="col-md-6" style={{ marginLeft: '10px' }}>
-              {(dadosUser || storage?.name) && (
+              {/* {(dadosUser || storage?.name) && (
                 <IconButton
                   color="inherit"
                   aria-label="open drawer"
@@ -254,21 +223,22 @@ export default function MiniDrawer(props) {
                     [classes.hide]: open
                   })}>
                   <MenuIcon />
-                </IconButton>
-              )}
+                </IconButton> */}
+              {/* )} */}
+              <img
+                alt="Unimed Chapecó"
+                src="https://unimedchapeco.coop.br/assets/img/logo_110_51.png"
+              />
             </div>
-            {/* <img
-          alt="docs Chapecó"
-          src="https://docschapeco.coop.br/assets/img/logo_110_51.png"
-        /> */}
             {/* <Typography variant="h6" noWrap>
             Eventos
           </Typography> */}
             <div className="col-md-6 text-end">
-              <Button
+
+              <><Button
                 ref={anchorRef}
                 id="composition-button"
-                aria-controls={openUser ? 'composition-menu' : undefined}
+                // aria-controls={openUser ? 'composition-menu' : undefined}
                 aria-expanded={openUser ? 'true' : undefined}
                 aria-haspopup="true"
                 onClick={handleToggle}>
@@ -278,67 +248,71 @@ export default function MiniDrawer(props) {
                   sx={{ width: 38, height: 38 }}
                 />
               </Button>
-              <Popper
-                open={openUser}
-                anchorEl={anchorRef.current}
-                role={undefined}
-                placement="bottom-start"
-                transition
-                disablePortal>
-                {({ TransitionProps, placement }) => (
-                  <Grow
-                    {...TransitionProps}
-                    style={{
-                      transformOrigin:
-                        placement === 'bottom-start'
-                          ? 'left top'
-                          : 'left bottom'
-                    }}>
-                    <Paper>
-                      <ClickAwayListener onClickAway={handleClose}>
-                        <MenuList
-                          autoFocusItem={openUser}
-                          id="composition-menu"
-                          aria-labelledby="composition-button"
-                          // eslint-disable-next-line react/jsx-no-bind
-                          onKeyDown={handleListKeyDown}>
-                          <MenuItem
-                            component={Link}
-                            to="/login"
-                            onClick={() => handleStorage()}>
-                            {Login}
-                          </MenuItem>
-                          <MenuItem
-                            component={Link}
-                            to="/"
-                          >Home
-                          </MenuItem>
-                          <MenuItem
-                            component={Link}
+                <Popper
+                  open={openUser}
+                  anchorEl={anchorRef.current}
+                  role={undefined}
+                  placement="bottom-start"
+                  transition
+                  disablePortal>
+                  {({ TransitionProps, placement }) => (
+                    <Grow
+                      {...TransitionProps}
+                      style={{
+                        transformOrigin:
+                          placement === 'bottom-start'
+                            ? 'left top'
+                            : 'left bottom'
+                      }}>
+                      <Paper>
+                        <ClickAwayListener onClickAway={handleClose}>
+                          <MenuList
+                            autoFocusItem={true}
+                            id="composition-menu"
+                            aria-labelledby="composition-button"
+                            // eslint-disable-next-line react/jsx-no-bind
+                            onKeyDown={handleListKeyDown}>
+                            <MenuItem
+                              component={Link}
+                              to="/login"
+                              onClick={() => handleStorage()}>
+                              {Login}
+                            </MenuItem>
+                            {(dadosUser || storage?.name) &&
+                              <>
+                                <MenuItem
+                                  component={Link}
+                                  to="/"
+                                >Home
+                                </MenuItem>
+                                <MenuItem
+                                  component={Link}
 
-                            to={{
-                              pathname: "/user-list",
-                              state: dados
-                            }}
-                          >{Account}
-                          </MenuItem>
-                          <MenuItem
-                            component={Link}
+                                  to={{
+                                    pathname: "/user-list",
+                                    state: dados
+                                  }}
+                                >{Account}
+                                </MenuItem>
+                              </>
+                            }
+                            {menu && <MenuItem
+                              component={Link}
 
-                            to={{
-                              pathname: "/request-list",
-                              state: { type: 'list', status: 'new' }
-                            }}
-                          >Solicitações
-                          </MenuItem>
-                          {/* <MenuItem onClick={handleClose}>Minha conta</MenuItem>
+                              to={{
+                                pathname: "/request-list",
+                                state: { type: 'list', status: 'new' }
+                              }}
+                            >Solicitações
+                            </MenuItem>}
+                            {/* <MenuItem onClick={handleClose}>Minha conta</MenuItem>
                           <MenuItem onClick={handleClose}>Sair</MenuItem> */}
-                        </MenuList>
-                      </ClickAwayListener>
-                    </Paper>
-                  </Grow>
-                )}
-              </Popper>
+                          </MenuList>
+                        </ClickAwayListener>
+                      </Paper>
+                    </Grow>
+                  )}
+                </Popper></>
             </div>
           </Toolbar>
         </div>

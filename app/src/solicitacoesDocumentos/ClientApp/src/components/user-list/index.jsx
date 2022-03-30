@@ -1,10 +1,10 @@
 /* eslint-disable multiline-ternary */
 /* eslint-disable no-use-before-define */
-import * as React from 'react'
-import { useState, useEffect, useContext } from 'react'
-import Icon from '@mdi/react'
-import PropTypes from 'prop-types'
-import { alpha } from '@mui/material/styles'
+import * as React from 'react';
+import { useState, useEffect, useContext } from 'react';
+import Icon from '@mdi/react';
+import PropTypes from 'prop-types';
+import { alpha } from '@mui/material/styles';
 // import Box from '@mui/material/Box'
 // import Table from '@mui/material/Table'
 // import TableBody from '@mui/material/TableBody'
@@ -38,30 +38,30 @@ import {
   Fab,
   IconButton,
   Tooltip,
-  Stack
-} from '@mui/material'
+  Stack,
+} from '@mui/material';
 // import Badge from '@material-ui/core/Badge'
-import Badge from 'react-bootstrap/Badge'
+import Badge from 'react-bootstrap/Badge';
 // import Checkbox from '@mui/material/Checkbox';
 // import IconButton from '@mui/material/IconButton'
 // import Tooltip from '@mui/material/Tooltip'
-import { Alert, AlertTitle } from '@material-ui/lab'
-import FilterListIcon from '@mui/icons-material/FilterList'
-import { visuallyHidden } from '@mui/utils'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
+import { Alert, AlertTitle } from '@material-ui/lab';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import { visuallyHidden } from '@mui/utils';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 
-import MuiAlert from '@material-ui/lab/Alert'
-import { Snackbar } from '@material-ui/core'
+import MuiAlert from '@material-ui/lab/Alert';
+import { Snackbar } from '@material-ui/core';
 
-import { mdiMagnify, mdiPlus, mdiBorderColor, mdiDelete } from '@mdi/js'
-import { withStyles } from '@material-ui/core/styles'
-import styled from 'styled-components'
-import Form from '../form-user'
-import APIUsers from '../../lib/api/users'
-import { UploadContext } from '../../lib/context/upload-context'
-import DatePicker from '../datePicker'
+import { mdiMagnify, mdiPlus, mdiBorderColor, mdiDelete } from '@mdi/js';
+import { withStyles } from '@material-ui/core/styles';
+import styled from 'styled-components';
+import Form from '../form-user';
+import APIUsers from '../../lib/api/users';
+import { UploadContext } from '../../lib/context/upload-context';
+import DatePicker from '../datePicker';
 
 // import Home from '../home';
 // import { Redirect } from 'react-router-dom';
@@ -91,94 +91,94 @@ import DatePicker from '../datePicker'
 //   createData('Nougat', 360, 19.0, 9, 37.0),
 //   createData('Oreo', 437, 18.0, 63, 4.0),
 // ];
-import './data.css'
+import './data.css';
 
-function descendingComparator (a, b, orderBy) {
+function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
-    return -1
+    return -1;
   }
   if (b[orderBy] > a[orderBy]) {
-    return 1
+    return 1;
   }
-  return 0
+  return 0;
 }
 
-function getComparator (order, orderBy) {
+function getComparator(order, orderBy) {
   return order === 'desc'
     ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
 // This method is created for cross-browser compatibility, if you don't
 // need to support IE11, you can use Array.prototype.sort() directly
-function stableSort (array, comparator) {
-  const stabilizedThis = array.map((el, index) => [el, index])
+function stableSort(array, comparator) {
+  const stabilizedThis = array.map((el, index) => [el, index]);
   stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0])
+    const order = comparator(a[0], b[0]);
     if (order !== 0) {
-      return order
+      return order;
     }
-    return a[1] - b[1]
-  })
-  return stabilizedThis.map((el) => el[0])
+    return a[1] - b[1];
+  });
+  return stabilizedThis.map((el) => el[0]);
 }
 
 const styles = (theme) => ({
   field: {
-    backgroundColor: '#006600'
-  }
-})
+    backgroundColor: '#006600',
+  },
+});
 
 const headCells = [
   {
     id: 'name',
     align: 'left',
     disablePadding: true,
-    label: 'Nome'
+    label: 'Nome',
   },
   {
     id: 'Login',
     align: 'center',
     disablePadding: false,
-    label: 'Login'
+    label: 'Login',
   },
 
   {
     id: 'active',
     align: 'right',
     disablePadding: false,
-    label: 'Status'
+    label: 'Status',
   },
   {
     id: 'created',
     align: 'right',
     disablePadding: false,
-    label: 'Data criação'
+    label: 'Data criação',
   },
   {
     id: 'updated',
     align: 'right',
     disablePadding: false,
-    label: 'Data Atualização'
+    label: 'Data Atualização',
   },
   {
     id: 'actions',
     align: 'right',
     disablePadding: false,
-    label: 'Ações'
-  }
-]
+    label: 'Ações',
+  },
+];
 
-function EnhancedTableHead (props) {
+function EnhancedTableHead(props) {
   const {
     order,
     orderBy,
 
-    onRequestSort
-  } = props
+    onRequestSort,
+  } = props;
   const createSortHandler = (property) => (event) => {
-    onRequestSort(event, property)
-  }
+    onRequestSort(event, property);
+  };
 
   return (
     <TableHead>
@@ -216,7 +216,7 @@ function EnhancedTableHead (props) {
         ))}
       </TableRow>
     </TableHead>
-  )
+  );
 }
 
 EnhancedTableHead.propTypes = {
@@ -224,12 +224,12 @@ EnhancedTableHead.propTypes = {
   onRequestSort: PropTypes.func.isRequired,
   // onSelectAllClick: PropTypes.func.isRequired,
   order: PropTypes.oneOf(['asc', 'desc']).isRequired,
-  orderBy: PropTypes.string.isRequired
+  orderBy: PropTypes.string.isRequired,
   // rowCount: PropTypes.number.isRequired,
-}
+};
 
 const EnhancedTableToolbar = (props) => {
-  const { numSelected } = props
+  const { numSelected } = props;
 
   return (
     <Toolbar
@@ -240,9 +240,9 @@ const EnhancedTableToolbar = (props) => {
           bgcolor: (theme) =>
             alpha(
               theme.palette.primary.main,
-              theme.palette.action.activatedOpacity
-            )
-        })
+              theme.palette.action.activatedOpacity,
+            ),
+        }),
       }}>
       {/* {numSelected > 0 ? (
         <Typography
@@ -276,34 +276,34 @@ const EnhancedTableToolbar = (props) => {
       </Tooltip>
       {/* )} */}
     </Toolbar>
-  )
-}
+  );
+};
 
 EnhancedTableToolbar.propTypes = {
-  numSelected: PropTypes.number.isRequired
-}
+  numSelected: PropTypes.number.isRequired,
+};
 
-export default function EnhancedTable () {
-  dayjs.extend(utc)
-  dayjs.extend(timezone)
-  const [order, setOrder] = useState('asc')
-  const [orderBy, setOrderBy] = useState('calories')
-  const [selected, setSelected] = useState([])
-  const [page, setPage] = useState(0)
+export default function EnhancedTable() {
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('calories');
+  const [selected, setSelected] = useState([]);
+  const [page, setPage] = useState(0);
 
-  const [rowsPerPage, setRowsPerPage] = useState(5)
-  const [changeRender, setChageRender] = useState(false)
-  const [events, setEvents] = useState([])
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [changeRender, setChageRender] = useState(false);
+  const [events, setEvents] = useState([]);
 
-  const [success, setSuccess] = useState(false)
-  const [message, setMessage] = useState('')
-  const [confirm, setConfirm] = useState(false)
-  const [item, setItem] = useState(null)
-  const vertical = 'top'
-  const horizontal = 'center'
-  const { setDadosUpload } = useContext(UploadContext)
-  const start = dayjs().startOf('month')
-  const end = dayjs().endOf('month')
+  const [success, setSuccess] = useState(false);
+  const [message, setMessage] = useState('');
+  const [confirm, setConfirm] = useState(false);
+  const [item, setItem] = useState(null);
+  const vertical = 'top';
+  const horizontal = 'center';
+  const { setDadosUpload } = useContext(UploadContext);
+  const start = dayjs().startOf('month');
+  const end = dayjs().endOf('month');
 
   const initialProps = {
     idauth: 0,
@@ -313,129 +313,121 @@ export default function EnhancedTable () {
     auth_data_created: '',
     auth_data_updated: '',
     auth_active: 0,
-    alterar: false
-  }
+    alterar: false,
+  };
 
-  const [filtros, setFiltros] = useState((state) => (state = initialProps))
+  const [filtros, setFiltros] = useState((state) => (state = initialProps));
 
   const Message = (state) => {
-    return <MuiAlert elevation={6} variant="filled" {...state} />
-  }
+    return <MuiAlert elevation={6} variant="filled" {...state} />;
+  };
 
   const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc'
-    setOrder(isAsc ? 'desc' : 'asc')
-    setOrderBy(property)
-  }
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = events.map((n) => n.name)
-      setSelected(newSelecteds)
-      return
+      const newSelecteds = events.map((n) => n.name);
+      setSelected(newSelecteds);
+      return;
     }
-    setSelected([])
-  }
+    setSelected([]);
+  };
 
   const onChange = (name, value) => {
-    const campos = { ...filtros }
-    console.log(name, value)
+    const campos = { ...filtros };
     if (value === 'Invalid Date') {
-      campos[name] = null
+      campos[name] = null;
     } else {
-      campos[name] = value
+      campos[name] = value;
     }
-    setFiltros(campos)
-  }
+    setFiltros(campos);
+  };
 
   const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name)
-    let newSelected = []
+    const selectedIndex = selected.indexOf(name);
+    let newSelected = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name)
+      newSelected = newSelected.concat(selected, name);
     } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1))
+      newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1))
+      newSelected = newSelected.concat(selected.slice(0, -1));
     } else if (selectedIndex > 0) {
       newSelected = newSelected.concat(
         selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      )
+        selected.slice(selectedIndex + 1),
+      );
     }
 
-    setSelected(newSelected)
-  }
+    setSelected(newSelected);
+  };
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage)
-  }
+    setPage(newPage);
+  };
 
   const HandleEvents = async () => {
-    const campos = {}
-    campos.auth_name = filtros.auth_name
-    const resp = await APIUsers.allUsers(campos)
+    const campos = {};
+    campos.auth_name = filtros.auth_name;
+    const resp = await APIUsers.allUsers(campos);
     if (resp?.success) {
-      console.log(resp)
-      setEvents(resp.data)
+      setEvents(resp.data);
     }
-  }
+  };
 
   const HandleRender = (value) => {
     // HandleEvents()
 
     if (value === false) {
-      window.location.reload()
+      window.location.reload();
     }
-    setChageRender(value)
-    console.log(changeRender)
-  }
+    setChageRender(value);
+  };
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10))
-    setPage(0)
-  }
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   const HandleEdit = (items) => {
-    setChageRender(true)
-    setItem(items)
-  }
+    setChageRender(true);
+    setItem(items);
+  };
 
   const HandleDelete = (items) => {
-    setConfirm(true)
-    setItem(items)
-  }
+    setConfirm(true);
+    setItem(items);
+  };
 
   const handleClose = async (value) => {
-    setDadosUpload(null)
-    setChageRender(value)
-    setSuccess(value)
-    setItem(null)
+    setDadosUpload(null);
+    setChageRender(value);
+    setSuccess(value);
+    setItem(null);
     // window.location.reload()
-    setMessage('Salvo com sucesso!')
-  }
+    setMessage('Salvo com sucesso!');
+  };
 
-  const isSelected = (name) => selected.indexOf(name) !== -1
+  const isSelected = (name) => selected.indexOf(name) !== -1;
 
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - events.length) : 0
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - events.length) : 0;
 
   const action = (
     <Message color="success" severity="success">
       {message}
     </Message>
-  )
+  );
 
   useEffect(() => {
-    HandleEvents()
-  }, [changeRender])
-
-  useEffect(() => {
-    console.log(events)
-    // window.location.reload()
-  }, [events])
+    HandleEvents();
+  }, [changeRender]);
 
   const Render = () => {
     // const dataInicio = {
@@ -453,8 +445,8 @@ export default function EnhancedTable () {
     const Name = {
       name: 'auth_name',
       label: 'Nome',
-      value: filtros?.auth_name || ''
-    }
+      value: filtros?.auth_name || '',
+    };
     return (
       events && (
         <Box sx={{ width: '100%' }}>
@@ -492,7 +484,7 @@ export default function EnhancedTable () {
                   // className="ml-25 mt-2"
                   size="large"
                   style={{
-                    backgroundColor: '#005128'
+                    backgroundColor: '#005128',
                     // bottom: '50px',
                     // left: '30px'
                   }}
@@ -508,7 +500,7 @@ export default function EnhancedTable () {
                   // className="ml-25 mt-2"
                   size="large"
                   style={{
-                    backgroundColor: '#f5781e'
+                    backgroundColor: '#f5781e',
                     // bottom: '50px',
                     // left: '34px'
                   }}
@@ -548,25 +540,25 @@ export default function EnhancedTable () {
                         stableSort(events, getComparator(order, orderBy))
                           .slice(
                             page * rowsPerPage,
-                            page * rowsPerPage + rowsPerPage
+                            page * rowsPerPage + rowsPerPage,
                           )
                           .map((row, index) => {
-                            const labelId = `enhanced-table-checkbox-${index}`
-                            let statusColor
-                            let statusType
+                            const labelId = `enhanced-table-checkbox-${index}`;
+                            let statusColor;
+                            let statusType;
                             switch (row.auth_active) {
                               case 0:
-                                statusColor = 'danger'
-                                statusType = 'Inativo'
-                                break
+                                statusColor = 'danger';
+                                statusType = 'Inativo';
+                                break;
                               case 1:
-                                statusColor = 'success'
-                                statusType = 'Ativo'
-                                break
+                                statusColor = 'success';
+                                statusType = 'Ativo';
+                                break;
                               default:
-                                statusColor = 'danger'
-                                statusType = 'inativo'
-                                break
+                                statusColor = 'danger';
+                                statusType = 'inativo';
+                                break;
                             }
                             return (
                               <TableRow
@@ -625,7 +617,7 @@ export default function EnhancedTable () {
                                     // className="ml-25 mt-2"
                                     size="small"
                                     style={{
-                                      backgroundColor: 'rgb(236 236 236)'
+                                      backgroundColor: 'rgb(236 236 236)',
                                       // bottom: '50px',
                                       // left: '30px'
                                     }}
@@ -633,7 +625,7 @@ export default function EnhancedTable () {
                                     <Icon
                                       path={mdiBorderColor}
                                       style={{
-                                        color: '#005128'
+                                        color: '#005128',
                                         // bottom: '50px'
                                         // left: '30px'
                                       }}
@@ -644,13 +636,13 @@ export default function EnhancedTable () {
                                   </Fab>
                                 </TableCell>
                               </TableRow>
-                            )
+                            );
                           })}
                       {/* {renderItens()} */}
                       {emptyRows > 0 && (
                         <TableRow
                           style={{
-                            height: 53 * emptyRows
+                            height: 53 * emptyRows,
                           }}>
                           <TableCell colSpan={6} />
                         </TableRow>
@@ -698,7 +690,7 @@ export default function EnhancedTable () {
                   type="button"
                   className="btn btn-danger  btn-lg w-50"
                   onClick={() => {
-                    setConfirm(false)
+                    setConfirm(false);
                   }}>
                   Cancelar
                 </button>
@@ -714,12 +706,12 @@ export default function EnhancedTable () {
           </Dialog>
         </Box>
       )
-    )
-  }
+    );
+  };
 
   return !changeRender ? (
     Render()
   ) : (
     <Form data={item} handleClose={handleClose} HandleRender={HandleRender} />
-  )
+  );
 }

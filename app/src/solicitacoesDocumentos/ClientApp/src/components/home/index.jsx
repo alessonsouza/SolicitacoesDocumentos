@@ -1,37 +1,24 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable react/jsx-key */
-import React, { useRef, useEffect, useState } from 'react';
-import $ from 'jquery';
+import React, { useRef, useState } from 'react';
 import {
   Typography,
   Box,
-  Grid,
   Fab,
   Card,
   Divider,
-  Paper,
   CardContent,
 } from '@material-ui/core';
 
-import { Button } from '@mui/material';
+import { Button, FormControlLabel, Checkbox } from '@mui/material';
 
 import PropTypes from 'prop-types';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
-import MailIcon from '@material-ui/icons/Event';
-import LocationOnIcon from '@material-ui/icons/LocationOn';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import dayjs from 'dayjs';
-import timezone from 'dayjs/plugin/timezone';
-import Carousel from 'react-multi-carousel';
-import APIEventos from '../../lib/api/eventos';
 import Form from '../form';
-import AllEvents from '../todosEventos';
 import 'react-multi-carousel/lib/styles.css';
-import '../../assets/css/colors.css';
+import '../../assets/css/unimed.css';
 import '../../index.css';
 // eslint-disable-next-line import/no-unresolved
-import endpoint from '../../endpoints.config';
 // eslint-disable-next-line no-multi-assign
 // window.$ = window.jQuery = require('jquery')
 import clsx from 'clsx';
@@ -44,7 +31,7 @@ import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import VideoLabelIcon from '@material-ui/icons/VideoLabel';
 import StepConnector from '@material-ui/core/StepConnector';
 import MuiAlert from '@material-ui/lab/Alert';
-
+import FormControl from '@material-ui/core/FormControl';
 import { Snackbar } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
@@ -272,6 +259,9 @@ const Home = () => {
   const [events, setEvents] = useState([]);
   const [showType, setShowType] = useState(0);
   const [event, setEvent] = useState();
+  const [state, setState] = useState({
+    Accepted: false,
+  });
   const [activeStep, setActiveStep] = React.useState(0);
   const steps = getSteps();
   const [success, setSuccess] = useState(
@@ -295,12 +285,24 @@ const Home = () => {
   };
 
   const handleBack = () => {
+    const campos = { ...state };
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
     HandleShow((value) => value - 1);
+    const passo = activeStep - 1;
+    if (passo === 0) {
+      campos.Accepted = false;
+      setState(campos);
+    }
   };
 
   const handleReset = () => {
     setActiveStep(0);
+  };
+
+  const handleChangeRequerente = (name, value) => {
+    const campos = { ...state };
+    campos[name] = value;
+    setState(campos);
   };
 
   const responsive = {
@@ -342,134 +344,51 @@ const Home = () => {
                     style={{
                       fontWeight: 600,
                       color: 'gray',
-                      textAlign: 'center',
+                      textAlign: 'justify',
                     }}>
-                    {`I don't see what I'm doing wrong...and it's works if I do the deleteRecords by hand in the Chrome console.
-
-here is the grid:
-               
-
-and here is the call to deleteRecords.  I've stripped it down to just this:
-
-function assignSMSsARama() {
-    var dataGrid = null;
-  
-
-
-and here's the error I see in the console:
-constants.js:93 Uncaught TypeError: Cannot read property 'getAttribute' of undefined
-    at e.deleteRow (constants.js:93)
-    at t.deleteRow (constants.js:93)
-    at assignSMSsARama (Unassigned.js:137)
-    at assignARama (Unassigned.js:46)
-    at HTMLButtonElement.onclick (unassigned:184)
-    
-and here is the call to deleteRecords.  I've stripped it down to just this:
-
-function assignSMSsARama() {
-    var dataGrid = null;
-  
-
-
-and here's the error I see in the console:
-constants.js:93 Uncaught TypeError: Cannot read property 'getAttribute' of undefined
-    at e.deleteRow (constants.js:93)
-    at t.deleteRow (constants.js:93)
-    at assignSMSsARama (Unassigned.js:137)
-    at assignARama (Unassigned.js:46)
-    at HTMLButtonElement.onclick (unassigned:184)
-    
-and here is the call to deleteRecords.  I've stripped it down to just this:
-
-function assignSMSsARama() {
-    var dataGrid = null;
-  
-
-
-and here's the error I see in the console:
-constants.js:93 Uncaught TypeError: Cannot read property 'getAttribute' of undefined
-    at e.deleteRow (constants.js:93)
-    at t.deleteRow (constants.js:93)
-    at assignSMSsARama (Unassigned.js:137)
-    at assignARama (Unassigned.js:46)
-    at HTMLButtonElement.onclick (unassigned:184)
-    
-and here is the call to deleteRecords.  I've stripped it down to just this:
-
-function assignSMSsARama() {
-    var dataGrid = null;
-  
-
-
-and here's the error I see in the console:
-constants.js:93 Uncaught TypeError: Cannot read property 'getAttribute' of undefined
-    at e.deleteRow (constants.js:93)
-    at t.deleteRow (constants.js:93)
-    at assignSMSsARama (Unassigned.js:137)
-    at assignARama (Unassigned.js:46)
-    at HTMLButtonElement.onclick (unassigned:184)
-    
-and here is the call to deleteRecords.  I've stripped it down to just this:
-
-function assignSMSsARama() {
-    var dataGrid = null;
-  
-
-
-and here's the error I see in the console:
-constants.js:93 Uncaught TypeError: Cannot read property 'getAttribute' of undefined
-    at e.deleteRow (constants.js:93)
-    at t.deleteRow (constants.js:93)
-    at assignSMSsARama (Unassigned.js:137)
-    at assignARama (Unassigned.js:46)
-    at HTMLButtonElement.onclick (unassigned:184)
-    
-and here is the call to deleteRecords.  I've stripped it down to just this:
-
-function assignSMSsARama() {
-    var dataGrid = null;
-  
-
-
-and here's the error I see in the console:
-constants.js:93 Uncaught TypeError: Cannot read property 'getAttribute' of undefined
-    at e.deleteRow (constants.js:93)
-    at t.deleteRow (constants.js:93)
-    at assignSMSsARama (Unassigned.js:137)
-    at assignARama (Unassigned.js:46)
-    at HTMLButtonElement.onclick (unassigned:184)
-    
-and here is the call to deleteRecords.  I've stripped it down to just this:
-
-function assignSMSsARama() {
-    var dataGrid = null;
-  
-
-
-and here's the error I see in the console:
-constants.js:93 Uncaught TypeError: Cannot read property 'getAttribute' of undefined
-    at e.deleteRow (constants.js:93)
-    at t.deleteRow (constants.js:93)
-    at assignSMSsARama (Unassigned.js:137)
-    at assignARama (Unassigned.js:46)
-    at HTMLButtonElement.onclick (unassigned:184)
-    
-and here is the call to deleteRecords.  I've stripped it down to just this:
-
-function assignSMSsARama() {
-    var dataGrid = null;
-  
-
-
-and here's the error I see in the console:
-constants.js:93 Uncaught TypeError: Cannot read property 'getAttribute' of undefined
-    at e.deleteRow (constants.js:93)
-    at t.deleteRow (constants.js:93)
-    at assignSMSsARama (Unassigned.js:137)
-    at assignARama (Unassigned.js:46)
-    at HTMLButtonElement.onclick (unassigned:184)
-
-Any help would be welcomed.`}
+                    Intruções e informações legais:
+                    <br />
+                    <br />
+                    1) SOLICITAÇÃO PELO PRÓPRIO PACIENTE <br />A cópia do
+                    prontuário será autorizada mediante requerimento preenchido
+                    pelo próprio paciente. É obrigatório a apresentação do
+                    documento de identificação original com foto na retirada.
+                    <br />
+                    <br />
+                    2) RESPONSÁVEL PELA INTERNAÇÃO <br />
+                    Para solicitar a cópia primeiramente deve constar o nome do
+                    responsável no atendimento do paciente assim como sua
+                    assinatura e na retirada deve apresentar documento de
+                    identificação original com foto.
+                    <br />
+                    <br />
+                    3) REPRESENTATE LEGAL <br />
+                    Será autorizada à solicitação ao representante legal,
+                    atuante de direito ou guardião/responsável de menores,
+                    através da apresentação do documento que comprove a situação
+                    de representante legal do paciente:
+                    <br />
+                    <br />
+                    a) Cópia de termos de tutela/curatela ou de procuração que
+                    outorgue os poderes específicos para a retirada de cópia de
+                    prontuário;
+                    <br />
+                    b)Cópia de certidão de nascimento do paciente menor de
+                    idade;
+                    <br />
+                    c)Cópia do documento de identificação do paciente e do
+                    representante legal;
+                    <br />
+                    <br />
+                    3) PACIENTE JÁ FALECIDO <br />
+                    O requerimento pode ser solicitado pelo cônjuge/companheiro
+                    e pelos sucessores legítimos do paciente como filhos, pais,
+                    avós, bisavós e irmãos, desde que documentalmente comprovado
+                    o vínculo familiar apresentando documento de identificação
+                    original com foto na retirada. Nos demais casos, somente via
+                    ordem judicial recomenda o Conselho Federal de Medicina
+                    (CFM)
+                    <br />
                   </Typography>
                 </div>
               </CardContent>
@@ -516,6 +435,11 @@ Any help would be welcomed.`}
       Usuário cadastrado com sucesso!
     </Message>
   );
+
+  const accepted = {
+    id: 1,
+    descricao: 'Declaro que li as informações acima, estou ciente e concordo',
+  };
 
   return (
     <div className={classes.root}>
@@ -565,6 +489,29 @@ Any help would be welcomed.`}
               </div>
             ) : (
               <div>
+                {activeStep === 0 && (
+                  <div className="text-center">
+                    <FormControl component="fieldset">
+                      <FormControlLabel
+                        key={accepted.id}
+                        value={accepted.id}
+                        control={
+                          <Checkbox
+                            checked={state.Accepted}
+                            onChange={(e) =>
+                              handleChangeRequerente(
+                                'Accepted',
+                                e.target.checked,
+                              )
+                            }
+                          />
+                        }
+                        label={accepted.descricao}
+                      />
+                    </FormControl>
+                  </div>
+                )}
+
                 <Typography className={classes.instructions}>
                   {getStepContent(activeStep)}
                 </Typography>
@@ -572,6 +519,7 @@ Any help would be welcomed.`}
                   <Fab
                     variant="extended"
                     size="medium"
+                    disabled={!state.Accepted}
                     onClick={activeStep >= 1 ? handleBack : handleNext}
                     style={{
                       backgroundColor: '#f5781e',

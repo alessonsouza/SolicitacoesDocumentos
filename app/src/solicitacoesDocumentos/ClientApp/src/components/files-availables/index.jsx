@@ -1,6 +1,7 @@
 import React from 'react';
 import { useEffect, useState, useContext } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Redirect, useHistory } from 'react-router-dom';
+
 import {
   Card,
   CardContent,
@@ -65,23 +66,25 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const FilesAvailables = (props) => {
+  const history = useHistory();
   const classes = useStyles();
   const [state, setState] = useState(props.data || []);
+  const [redirected, setRedirected] = useState(false);
   const { id } = useParams();
   const storage = TokenAPI.getToken();
   const [tipoDocumento, setTipoDocumento] = useState([]);
   const [notDocumentsAvailable, setNotDocumentsAvailable] = useState(false);
   const { dadosUpload, setDadosUpload } = useContext(UploadContext);
   const { dadosUser } = useContext(AuthContext);
-
+  const available = true;
   let arquivos = state?.documentos?.filter((e) => e.origem === 'U');
   useEffect(async () => {
     const resp = await APISolicitacoes.getSolicitacaoByID(
       id,
-      dadosUser?.created_at || storage?.created_at,
+      // dadosUser?.created_at || storage?.created_at,
     );
 
-    if (resp?.data.length) {
+    if (resp?.data?.length) {
       arquivos = resp?.documentos?.filter((e) => e.origem === 'U');
       setState(resp.data[0]);
     } else if (resp?.data === 5) {
@@ -91,9 +94,24 @@ const FilesAvailables = (props) => {
 
   useEffect(async () => {
     const resp = await APITipoDocumento.getAll();
-    console.log(resp);
+
     setTipoDocumento(resp?.data);
   }, []);
+
+  const HandleHome = () => {
+    setRedirected(true);
+  };
+
+  const GoBack = () => {
+    history.push(
+      props.from === 'unimed'
+        ? {
+            pathname: '/request-list',
+            state: { type: 'list', status: 'new' },
+          }
+        : { pathname: '/' },
+    );
+  };
   const dataNasc = {
     name: 'DataNascPaciente',
     label: 'Data Nascimento',
@@ -135,6 +153,7 @@ const FilesAvailables = (props) => {
             <div className="row">
               <div className="col-md-12">
                 <TextField
+                  disabled={available}
                   className="w-100"
                   variant="filled"
                   value={namePaciente.value || ''}
@@ -142,11 +161,12 @@ const FilesAvailables = (props) => {
                 />
               </div>
               <div className="col-md-6">
-                <DatePicker data={dataNasc} />
+                <DatePicker disabled={available} data={dataNasc} />
               </div>
               <div className="col-md-6">
                 <TextField
                   className="w-100"
+                  disabled={available}
                   variant="filled"
                   value={cpfPaciente.value || ''}
                   label={cpfPaciente.label}
@@ -154,6 +174,7 @@ const FilesAvailables = (props) => {
               </div>
               <div className="col-md-6">
                 <TextField
+                  disabled={available}
                   className="w-100"
                   variant="filled"
                   value={rgPaciente.value || ''}
@@ -198,6 +219,7 @@ const FilesAvailables = (props) => {
                           <FormControlLabel
                             key={documento.id}
                             value={documento.id}
+                            disabled={available}
                             control={<Radio />}
                             label={documento.descDocumento}
                           />
@@ -232,12 +254,52 @@ const FilesAvailables = (props) => {
           <FileProvider>
             <Container>
               <Content>
-                {props.data && <Upload />}
+                {props.data &&
+                  state?.statusSolicitacao?.descStatus !== 'Arquivado' && (
+                    <Upload />
+                  )}
                 <FileList type={'U'} docs={arquivos || []} />
               </Content>
               {/* <GlobalStyle /> */}
             </Container>
           </FileProvider>
+          {props.data && state?.statusSolicitacao?.descStatus !== 'Arquivado' && (
+            <div className="text-center">
+              <Fab
+                // disabled={activeStep === 0}
+                variant="extended"
+                size="medium"
+                // onClick={() => }
+                type="submit"
+                style={{
+                  backgroundColor: '#006600',
+                  width: '30%',
+                  textAlign: 'center',
+                  marginBottom: '10px',
+                }}>
+                <Typography style={{ fontSize: '12px' }}>
+                  <b>Enviar</b>
+                </Typography>
+              </Fab>
+            </div>
+          )}
+          <div className="text-center">
+            <Fab
+              // disabled={activeStep === 0}
+              variant="extended"
+              size="medium"
+              onClick={() => GoBack()}
+              style={{
+                backgroundColor: '#f5781e',
+                width: '30%',
+                textAlign: 'center',
+                marginBottom: '10px',
+              }}>
+              <Typography style={{ fontSize: '12px' }}>
+                <b>Voltar</b>
+              </Typography>
+            </Fab>
+          </div>
         </Paper>
       </Card>
     );
@@ -257,7 +319,7 @@ const FilesAvailables = (props) => {
     if (state.id) {
       // filtros.StatusSolicitacaoid = 1;
       state.StatusSolicitacao = {
-        id: 2,
+        id: 3,
         // descStatus: 'Pendente',
         // status: 1,
       };
@@ -298,31 +360,11 @@ const FilesAvailables = (props) => {
                 {RenderInfoPaciente()}
                 {RenderDocumentsRequested()}
                 {UploadFiles()}
-                {props.data && (
-                  <div className="text-center">
-                    <Fab
-                      // disabled={activeStep === 0}
-                      variant="extended"
-                      size="medium"
-                      // onClick={() => }
-                      type="submit"
-                      style={{
-                        backgroundColor: '#006600',
-                        width: '30%',
-                        textAlign: 'center',
-                        marginBottom: '10px',
-                      }}>
-                      <Typography style={{ fontSize: '12px' }}>
-                        <b>Enviar</b>
-                      </Typography>
-                    </Fab>
-                  </div>
-                )}
               </form>
             );
           }}
         </Formik>
-      ) : (
+      ) : !redirected ? (
         <div className={classes.root}>
           <Box>
             <Box p={2}>
@@ -349,8 +391,24 @@ const FilesAvailables = (props) => {
                   marginTop: '65px',
                   height: '300px',
                 }}>
-                Enviado para aprovação!
+                Os documentos não estão mais disponíveis!
               </Typography>
+              <div className="text-center">
+                <Fab
+                  variant="extended"
+                  size="medium"
+                  onClick={() => HandleHome()}
+                  style={{
+                    backgroundColor: '#f5781e',
+                    textAlign: 'flex-end',
+                    marginBottom: '10px',
+                  }}>
+                  {/* <ChevronLeftIcon className={classes.extendedIcon} /> */}
+                  <Typography style={{ fontSize: '12px' }}>
+                    <b>Nova Solicitação</b>
+                  </Typography>
+                </Fab>
+              </div>
             </Card>
 
             <Box style={{ width: '100%', height: '100%' }}>
@@ -362,6 +420,8 @@ const FilesAvailables = (props) => {
             </Box>
           </Box>
         </div>
+      ) : (
+        <Redirect to="/" />
       )}
     </>
   );

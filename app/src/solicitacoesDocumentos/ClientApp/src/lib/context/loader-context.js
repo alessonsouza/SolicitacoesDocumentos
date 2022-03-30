@@ -5,9 +5,10 @@ const LoaderContext = createContext()
 
 const LoaderProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false)
+  const [estaAutenticado, setEstaAutenticado] = useState(false);
 
   return (
-    <LoaderContext.Provider value={{ isLoading, setIsLoading }}>
+    <LoaderContext.Provider value={{ isLoading, setIsLoading, estaAutenticado, setEstaAutenticado }}>
       {children}
     </LoaderContext.Provider>
   )

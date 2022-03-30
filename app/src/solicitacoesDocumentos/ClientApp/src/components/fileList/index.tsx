@@ -2,26 +2,34 @@
 /* eslint-disable import/extensions */
 /* eslint-disable react/react-in-jsx-scope */
 // eslint-disable-next-line no-use-before-define
-import React, { useContext } from 'react';
-import { CircularProgressbar } from 'react-circular-progressbar';
-import { MdCheckCircle, MdError, MdLink, MdMoodBad } from 'react-icons/md';
+import { useContext } from 'react';
+import { MdCheckCircle, MdError } from 'react-icons/md';
 
 import { Container, FileInfo, Preview } from './styles';
 // eslint-disable-next-line import/no-unresolved
 import { useFiles, IFile } from '../context/files';
 // // import { IFile } from "../context/files.tsx";
 import { UploadContext } from '../../lib/context/upload-context';
+import { LoaderContext } from '../../lib/context/loader-context';
+import APISolicitacoes from '../../lib/api/solicitacoes';
 // import Ale from '../../assets/uploads/'
 import endpoint from '../../endpoints.config';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 
+import {
+  Fab,
+} from '@material-ui/core';
+import Icon from '@mdi/react';
+import { mdiDownloadCircle  } from '@mdi/js';
+
 function FileList(props: any) {
   dayjs.extend(utc);
   dayjs.extend(timezone);
   let { uploadedFiles: files, deleteFile } = useFiles();
   const { setDadosUpload } = useContext(UploadContext);
+  const { setIsLoading } = useContext(LoaderContext);
 
   if (files?.length > 0) {
     files?.forEach((element) => {
@@ -55,6 +63,26 @@ function FileList(props: any) {
     // if (files?.length > 0) {
     //   setDadosUpload(files);
     // }
+  }
+
+  const Downloading = async (fileName: string) => {
+    setIsLoading(true);  
+    const resposta:any = await APISolicitacoes.getImage({fileName: fileName});
+
+    const blob = new Blob([resposta], {
+      type: 'application/octet-stream',
+    });
+
+    const link = document.createElement('a');
+    const url = window.URL.createObjectURL(blob);
+
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    console.log(link);
+    link.click();
+    window.URL.revokeObjectURL(url);
+    setIsLoading(false);
   }
 
   // if (!files?.length) {
@@ -100,7 +128,7 @@ function FileList(props: any) {
                 </FileInfo>
               </li> */}
             <div>
-              {!uploadedFile.uploaded && !uploadedFile.error && (
+              {/* {!uploadedFile.uploaded && !uploadedFile.error && (
                 <CircularProgressbar
                   styles={{
                     root: { width: 24 },
@@ -110,18 +138,29 @@ function FileList(props: any) {
                   text={String(uploadedFile.progress)}
                   value={uploadedFile.progress || 0}
                 />
-              )}
+              )} */}
 
-              {uploadedFile.path && (
-                <a
-                  href={`${endpoint.UserBaseUrl}/${uploadedFile.path}/${uploadedFile.fileName}`}
-                  target="_blank"
-                  rel="noopener noreferrer">
-                  <MdLink style={{ marginRight: 8 }} size={24} color="#222" />
-                  {/*  eslint-disable-next-line jsx-a11y/img-redundant-alt */}
-                  {/* <img src="C:\www\AgendaEventos\assets\uploads\pp.jpg"
-                className="img" alt="My image" /> */}
-                </a>
+              {uploadedFile.id && (
+                // <a
+                //   href={`${endpoint.UserBaseUrl}/${uploadedFile.path}/${uploadedFile.fileName}`}
+                //   target="_blank"
+                //   rel="noopener noreferrer">
+                //   <MdLink style={{ marginRight: 8 }} size={24} color="#222" />
+                //   {/*  eslint-disable-next-line jsx-a11y/img-redundant-alt */}
+                //   {/* <img src="C:\www\AgendaEventos\assets\uploads\pp.jpg"
+                // className="img" alt="My image" /> */}
+                // </a>
+                <Fab
+                className="ml-25 mt-2 fa fa-download"
+                style={{ backgroundColor: '#79787d', fontSize: "26px", cursor: 'pointer',margin: '2%', color: '#000000'}}
+                onClick={() =>  {Downloading(uploadedFile.fileName)}}>
+                <Icon
+                  path={mdiDownloadCircle}
+                  title="Baixar"
+                  size={1}
+                  color="white"
+                />
+              </Fab>
               )}
 
               {uploadedFile.uploaded && (

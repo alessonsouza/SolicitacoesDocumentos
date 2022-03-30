@@ -35,8 +35,8 @@
 //     throw new Error(`'NODE_ENV' ${process.env.NODE_ENV} is not handled!`)
 // }
 export default {
-  UserBaseUrl: process.env.USER_SERVICE_URL ?? 'https://localhost:5001',
-  EtlUrl: process.env.ETL_SERVICE_URL ?? 'https://localhost:5001',
-  // UserBaseUrl: process.env.USER_SERVICE_URL ?? 'http://192.168.2.240:8094',
-  // EtlUrl: process.env.ETL_SERVICE_URL ?? 'http://192.168.2.240:8094',
+  // UserBaseUrl: process.env.USER_SERVICE_URL ?? 'https://localhost:5001',
+  // EtlUrl: process.env.ETL_SERVICE_URL ?? 'https://localhost:5001',
+  UserBaseUrl: process.env.USER_SERVICE_URL ?? 'http://192.168.2.240:8095',
+  EtlUrl: process.env.ETL_SERVICE_URL ?? 'http://192.168.2.240:8095',
 };

@@ -17,9 +17,13 @@ const AuthAPI = {
     return Promise.race([promisseReturn])
   },
 
-  isAuth: async () => {
-    const isAuth = await api.get('/auth/check')
-    return isAuth
+  isAuth: async (setEstaAutenticado) => {
+    const _isAuth = await api.get('check')
+    if (_isAuth.status === 401) {
+      TokenAPI.removeToken();
+      setEstaAutenticado(false);
+    }
+    return _isAuth.status !== 401;
     // return true;
   },
 
@@ -36,6 +40,9 @@ const AuthAPI = {
       storage.login = returnFromApi.data.data.user.login
       storage.created_at = returnFromApi.data.data.user.created_at
       storage.image = returnFromApi.data.data.user.auth_image
+      if (returnFromApi.data.data.user.perfils.length > 0) {
+        storage.perfis = returnFromApi.data.data.user.perfils
+      }
       TokenAPI.setToken(storage)
     }
     return returnFromApi.data

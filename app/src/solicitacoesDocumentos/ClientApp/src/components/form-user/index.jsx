@@ -52,6 +52,8 @@ import {
   Avatar,
 } from '@mui/material';
 import MenuIcon from '@material-ui/icons/Menu';
+import UsersAPI from '../../lib/api/users';
+import { AuthContext } from '../../lib/context/auth-context';
 
 // const label = { inputProps: { 'aria-label': 'Exibir por horário' } };
 const User = (props) => {
@@ -61,9 +63,10 @@ const User = (props) => {
   const start = dayjs().startOf('month');
   const end = dayjs().endOf('month');
   const [success, setSuccess] = useState(false);
+  const [jahExiste, setJahExiste] = useState(false);
   const [perfis, setPerfis] = useState([]);
   const storage = TokenAPI.getToken();
-
+  const { dadosUser } = useContext(AuthContext);
   const filesElement = useRef(null);
   const { dadosUpload, setDadosUpload } = useContext(UploadContext);
   // const [dialogTerm, setDialogTerm] = useState(false);
@@ -92,12 +95,11 @@ const User = (props) => {
       body: dataForm,
     });
     const data = await res.json();
-    console.log(data);
   };
 
   const handleClose = () => {
     // setDialogTerm(false);
-    setSuccess(false);
+    setJahExiste(false);
   };
   const initialProps = {
     id: 0,
@@ -110,17 +112,23 @@ const User = (props) => {
     alterar: false,
   };
 
-  const [filtros, setFiltros] = useState(
-    (state) =>
-      (state = history.state?.state?.data
-        ? history.state?.state?.data
-        : initialProps),
-  );
-  const [enabledPassword, setEnabledPassword] = useState(filtros.id === 0);
+  let disabled = true;
 
-  // if (filtros?.id) {
-  //   setEnabledPassword(true)
-  // }
+  const [filtros, setFiltros] = useState([]);
+  if (storage?.id || dadosUser?.id) {
+    disabled = false;
+  }
+  const [enabledPassword, setEnabledPassword] = useState(disabled);
+
+  const GetUserByID = async () => {
+    const resp = await UsersAPI.getUserByID(storage?.id || dadosUser?.id);
+    setFiltros(resp.data);
+  };
+
+  useEffect(() => {
+    GetUserByID();
+    // setOpenCad(openCad)
+  }, []);
 
   useEffect(async () => {
     const resp = await APIUsers.getPerfis();
@@ -129,7 +137,6 @@ const User = (props) => {
 
   const onChange = (name, value) => {
     const campos = { ...filtros };
-    console.log(name, value);
     if (value === 'Invalid Date') {
       campos[name] = null;
     } else {
@@ -155,22 +162,18 @@ const User = (props) => {
   const onSubmit = async (e) => {
     e.preventDefault();
     const campos = {};
-    // if (filtros.rg_date_begin_show !== null) {
-    //   campos.rg_date_begin_show = dayjs(filtros.rg_date_begin_show).tz(
-    //     'America/Sao_Paulo'
-    //   )
-    // }
-    // if (filtros.rg_date_end_visu !== null) {
-    //   campos.rg_date_end_visu = dayjs(filtros.rg_date_end_visu).tz(
-    //     'America/Sao_Paulo'
-    //   )
-    // }
+
+    const alreadyExists = await UsersAPI.getUserByEmail(filtros.email);
+    if (alreadyExists.data > 0) {
+      setJahExiste(true);
+      return;
+    }
     const emailArray = filtros.email.split('@');
-    campos.perfils = perfis.filter((e) => e.descricao === 'teste');
-    if (emailArray[1] !== 'teste.com.br') {
+    campos.perfils = perfis.filter((e) => e.descricao === 'unimed');
+    if (emailArray[1] !== 'unimedchapeco.coop.br') {
       campos.perfils = perfis.filter((e) => e.descricao === 'externo');
     }
-    const senhaMd5 = CryptoJS.MD5(`{tes${filtros.password}tes}`).toString();
+    const senhaMd5 = CryptoJS.MD5(`{uni${filtros.password}med}`).toString();
     campos.name = filtros.name;
     campos.data_updated = dayjs().tz('America/Sao_Paulo').format();
     campos.login = filtros.login;
@@ -235,12 +238,20 @@ const User = (props) => {
   };
 
   const action = (
-    <Message color="success" severity="success">
-      Usuário cadastrado com sucesso!
+    <Message color="error" severity="error">
+      já existe um usuário cadastrado com esse email!
     </Message>
   );
   return (
     <>
+      <Snackbar
+        open={jahExiste}
+        autoHideDuration={6000}
+        onClose={handleClose}
+        anchorOrigin={{ vertical, horizontal }}
+        key={vertical + horizontal}>
+        {action}
+      </Snackbar>
       {success ? (
         <Redirect
           to={{
@@ -326,6 +337,7 @@ const User = (props) => {
                       </div> */}
                           <div className="col-md-12">
                             <TextField
+                              required
                               className="w-100"
                               variant="filled"
                               value={Username.value || ''}
@@ -337,6 +349,7 @@ const User = (props) => {
                           </div>
                           <div className="col-md-12">
                             <TextField
+                              required
                               className="w-100"
                               variant="filled"
                               disabled={!enabledPassword}

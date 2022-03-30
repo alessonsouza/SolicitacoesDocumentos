@@ -12,13 +12,13 @@ import './menu.css';
 const Menu = () => {
   const { dadosUser } = useContext(AuthContext);
   const storage = TokenAPI.getToken();
-  const groups = dadosUser?.groups || storage?.groups;
+  const perfis = dadosUser?.groups || storage?.perfis;
   const RemoveStorage = () => {
     TokenAPI.removeToken();
   };
   let menu = false;
 
-  groups?.map((e) => {
+  perfis?.map((e) => {
     if (
       e.groupName === 'G_RH' ||
       e.groupName === 'SW_RH' ||

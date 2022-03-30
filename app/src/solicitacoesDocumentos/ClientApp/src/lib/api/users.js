@@ -23,12 +23,20 @@ const UsersAPI = {
     return returnFromApi
   },
   getUserByID: async (id) => {
-    const returnFromApi = await api.get(`/users/get-by-id/${id}`);
+    const returnFromApi = await api.get(`/users/get-user-by-id/${id}`);
     return returnFromApi.data;
   },
   getPerfis: async () => {
     const returnFromApi = await api.get(`/users/get-perfis`);
     return returnFromApi.data.data;
+  },
+  getUserByEmail: async (email) => {
+    const returnFromApi = await api.get(`/users/get-by-email/${email}`);
+    return returnFromApi.data;
+  },
+  NewPassword: async (name, email) => {
+    const returnFromApi = await api.get(`/users/new-password/${email}/${name}`);
+    return returnFromApi.data;
   }
 }
 

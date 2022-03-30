@@ -1,6 +1,5 @@
 /* eslint-disable multiline-ternary */
 /* eslint-disable no-use-before-define */
-import * as React from 'react';
 import { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import Icon from '@mdi/react';
@@ -39,7 +38,6 @@ import {
   Fab,
   IconButton,
   Tooltip,
-  Stack,
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
 // import Badge from '@material-ui/core/Badge'
@@ -59,15 +57,11 @@ import { Snackbar } from '@material-ui/core';
 
 import {
   mdiMagnify,
-  mdiPlus,
   mdiBorderColor,
-  mdiDelete,
   mdiFileUpload,
+  mdiFileLock,
 } from '@mdi/js';
-import { withStyles } from '@material-ui/core/styles';
-import styled from 'styled-components';
 import Form from '../form';
-import APIEventos from '../../lib/api/eventos';
 import APISolicitacoes from '../../lib/api/solicitacoes';
 import { UploadContext } from '../../lib/context/upload-context';
 import DatePicker from '../datePicker';
@@ -290,14 +284,15 @@ export default function EnhancedTable(props) {
   dayjs.extend(utc);
   dayjs.extend(timezone);
   const location = useLocation();
-  console.log(location.state);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('calories');
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [changeRender, setChageRender] = useState(location.state?.type);
+  const [changeRender, setChageRender] = useState(
+    location.state?.type || 'list',
+  );
   const [events, setEvents] = useState([]);
 
   const [success, setSuccess] = useState(false);
@@ -311,14 +306,10 @@ export default function EnhancedTable(props) {
   const end = dayjs().endOf('month');
 
   const initialProps = {
-    rg_title: '',
-    rg_date_begin: start,
-    rg_date_end: end,
-    rg_site: '',
-    rg_description: '',
-    rg_document: '',
-    rg_show_by_time: false,
-    rg_status: '',
+    nomeSolicitannte: '',
+    begin: start,
+    end: end,
+    nomePaciente: '',
   };
 
   const [filtros, setFiltros] = useState((state) => (state = initialProps));
@@ -344,7 +335,6 @@ export default function EnhancedTable(props) {
 
   const onChange = (name, value) => {
     const campos = { ...filtros };
-    console.log(name, value);
     if (value === 'Invalid Date') {
       campos[name] = null;
     } else {
@@ -377,35 +367,30 @@ export default function EnhancedTable(props) {
     setPage(newPage);
   };
 
-  const HandleEvents = async () => {
+  const HandleRequest = async () => {
     const campos = {};
-    if (filtros.rg_date_begin !== null) {
-      campos.rg_date_begin = dayjs(filtros.rg_date_begin)
-        .tz('America/Sao_Paulo')
-        .format();
+    if (filtros.begin !== null) {
+      campos.begin = dayjs(filtros.begin).tz('America/Sao_Paulo').format();
     }
-    if (filtros.rg_date_end !== null) {
-      campos.rg_date_end = dayjs(filtros.rg_date_end)
-        .tz('America/Sao_Paulo')
-        .format();
+    if (filtros.end !== null) {
+      campos.end = dayjs(filtros.end).tz('America/Sao_Paulo').format();
     }
-    campos.rg_description = filtros.rg_description;
-    campos.rg_title = filtros.rg_title;
-    const resp = await APISolicitacoes.getSolicitacoes();
+    campos.nomePaciente = filtros.nomePaciente;
+    campos.nomeSolicitannte = filtros.nomeSolicitannte;
+    console.log(campos);
+    const resp = await APISolicitacoes.getSolicitacoes(campos);
     if (resp?.success) {
-      console.log(resp);
       setEvents(resp.data);
     }
   };
 
   const HandleRender = (value) => {
-    // HandleEvents()
+    // HandleRequest()
 
     if (value === 'list') {
       window.location.reload();
     }
     setChageRender(value);
-    console.log(changeRender);
   };
 
   const handleChangeRowsPerPage = (event) => {
@@ -434,10 +419,20 @@ export default function EnhancedTable(props) {
   };
 
   const onDelete = async () => {
-    const campos = {};
-    campos.rg_id_events = item.rg_id_events;
+    const campos = { ...item };
+    campos.StatusSolicitacao = {
+      id: 2,
+      // descStatus: 'Pendente',
+      // status: 1,
+    };
+    // campos.TipoRetiradaid = 1;
+    // campos.TipoRetirada = {
+    //   id: 2,
+    //   // status: 1,
+    //   // descRetirada: 'online',
+    // };
 
-    const resp = await APIEventos.deleteEvent(campos);
+    const resp = await APISolicitacoes.update(campos);
 
     if (resp?.success) {
       setSuccess(true);
@@ -461,38 +456,38 @@ export default function EnhancedTable(props) {
   );
 
   useEffect(() => {
-    HandleEvents();
+    HandleRequest();
   }, [changeRender]);
 
   useEffect(() => {
     // window.location.reload()
-    if (location.state.status === 'new') {
+    if (location?.state?.status === 'new') {
       setChageRender('list');
     }
   }, [location]);
 
   const Render = () => {
     const dataInicio = {
-      name: 'rg_date_begin',
+      name: 'begin',
       label: 'Data Início',
-      value: filtros?.rg_date_begin || '',
-      format: 'YYYY-MM-DD HH:mm',
+      value: filtros?.begin || '',
+      // format: 'YYYY-MM-DD HH:mm',
     };
     const dataFim = {
-      name: 'rg_date_end',
+      name: 'end',
       label: 'Data Fim',
-      value: filtros?.rg_date_end || '',
-      format: 'YYYY-MM-DD HH:mm',
+      value: filtros?.end || '',
+      // format: 'YYYY-MM-DD HH:mm',
     };
     const titulo = {
-      name: 'rg_title',
-      label: 'Título',
-      value: filtros?.rg_title || '',
+      name: 'nomePaciente',
+      label: 'Nome Paciente',
+      value: filtros?.nomePaciente || '',
     };
     const descricao = {
-      name: 'rg_description',
-      label: 'Descrição',
-      value: filtros?.rg_description || '',
+      name: 'nomeSolicitannte',
+      label: 'Nome Solicitante',
+      value: filtros?.nomeSolicitannte || '',
     };
     return (
       events && (
@@ -534,7 +529,7 @@ export default function EnhancedTable(props) {
                     // bottom: '50px',
                     // left: '30px'
                   }}
-                  onClick={() => HandleEvents()}>
+                  onClick={() => HandleRequest()}>
                   <Icon
                     path={mdiMagnify}
                     title="Pesquisar"
@@ -542,7 +537,7 @@ export default function EnhancedTable(props) {
                     color="white"
                   />
                 </Fab>
-                <Fab
+                {/* <Fab
                   // className="ml-25 mt-2"
                   size="large"
                   style={{
@@ -559,7 +554,7 @@ export default function EnhancedTable(props) {
                     size={1}
                     color="white"
                   />
-                </Fab>
+                </Fab> */}
                 {/* </div> */}
               </div>
             </CardContent>
@@ -591,9 +586,6 @@ export default function EnhancedTable(props) {
                           .map((row, index) => {
                             const isItemSelected = isSelected(row.rg_title);
                             const labelId = `enhanced-table-checkbox-${index}`;
-                            const ano = dayjs(row.rg_date_begin)
-                              .tz('America/Sao_Paulo')
-                              .format('YYYY');
                             let statusColor;
                             let statusType;
                             switch (row?.statusSolicitacao.descStatus) {
@@ -674,7 +666,7 @@ export default function EnhancedTable(props) {
                                       // left: '30px'
                                     }}
                                     onClick={() =>
-                                      HandleEdit(row, 'uploadTeste')
+                                      HandleEdit(row, 'uploadUnimed')
                                     }>
                                     <Icon
                                       path={mdiFileUpload}
@@ -697,7 +689,7 @@ export default function EnhancedTable(props) {
                                       // left: '30px'
                                     }}
                                     onClick={() =>
-                                      HandleEdit(row, 'downloadTeste')
+                                      HandleEdit(row, 'downloadUnimed')
                                     }>
                                     <Icon
                                       path={mdiBorderColor}
@@ -721,13 +713,13 @@ export default function EnhancedTable(props) {
                                     }}
                                     onClick={() => HandleDelete(row)}>
                                     <Icon
-                                      path={mdiDelete}
+                                      path={mdiFileLock}
                                       style={{
                                         color: '#ea0f63',
                                         bottom: '50px',
                                         // left: '30px'
                                       }}
-                                      title="Deletar"
+                                      title="Arquivar"
                                       size={1}
                                       // color="white"
                                     />
@@ -778,7 +770,7 @@ export default function EnhancedTable(props) {
             <DialogContent dividers>
               <Alert color="warning">
                 <AlertTitle>
-                  Tem certeza que deseja excluir este registro?
+                  Tem certeza que deseja arquivar este registro?
                 </AlertTitle>
               </Alert>
             </DialogContent>
@@ -813,16 +805,17 @@ export default function EnhancedTable(props) {
       case 'list':
         return Render();
         break;
-      case 'uploadTeste':
+      case 'uploadUnimed':
         return (
           <FilesAvailables
             data={item}
+            from={'unimed'}
             handleClose={handleClose}
             HandleRender={HandleRender}
           />
         );
         break;
-      case 'downloadTeste':
+      case 'downloadUnimed':
         return (
           <Form
             data={item}

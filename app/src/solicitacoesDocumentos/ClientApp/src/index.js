@@ -23,6 +23,7 @@ import React from 'react'
 import * as dotenv from 'dotenv'
 import App from './App'
 import registerServiceWorker from './registerServiceWorker'
+
 import './index.css'
 
 dotenv.config()
@@ -30,7 +31,7 @@ const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href')
 const rootElement = document.getElementById('root')
 
 ReactDOM.render(
-  <BrowserRouter basename={baseUrl}>
+  <BrowserRouter basename={baseUrl} >
     <App />
   </BrowserRouter>,
   rootElement
